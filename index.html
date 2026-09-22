@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MASAÉ Homepage Prototype</title>
+<meta name="description" content="Scroll animation prototype for the MASAÉ homepage hero: through the palace arch into the inner garden, where the collection is revealed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="assets/brand/favicon.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<link rel="preload" as="image" href="assets/brand/logo.webp">
+<link rel="preload" as="image" href="assets/hero/hero-desktop.jpg" media="(min-aspect-ratio: 4/5)">
+<link rel="preload" as="image" href="assets/hero/hero-mobile.jpg" media="(max-aspect-ratio: 4/5)">
+<style>
+  :root {
+    --ivory: #F4EBDD;
+    --burgundy: #7D241E;
+    --sage: #5D7059;
+    --botanical: #304A3B;
+    --gold: #A58A55;
+    --ink: #2B2420;
+    --serif: "Cormorant Garamond", Georgia, serif;
+    --sans: "Jost", "Helvetica Neue", Arial, sans-serif;
+    --pack-gap: clamp(12px, 3vw, 44px);
+    /* Pack height: 36% of the screen height, but never wider than four packs can fit */
+    --pack-h: min(34vh, calc((100vw - 48px - 3 * var(--pack-gap)) / 4 / 0.317));
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { background: var(--ivory); color: var(--ink); font-family: var(--sans); font-weight: 300; overflow-x: hidden; }
+
+  /* ---------- Header (static, for context) ---------- */
+  .site-header {
+    position: fixed; inset: 0 0 auto 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px clamp(16px, 4vw, 48px);
+    color: var(--ivory); font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    transition: color .6s ease, background-color .6s ease;
+  }
+  .site-header.is-solid { color: var(--burgundy); background: rgba(244,235,221,.92); backdrop-filter: blur(8px); }
+  .site-header .logo { position: relative; display: block; aspect-ratio: 903 / 198; height: 24px; opacity: 0; transition: opacity .6s ease; }
+  .site-header .logo img { position: absolute; inset: 0; width: 100%; height: 100%; transition: opacity .6s ease; }
+  .site-header .logo .on-light { opacity: 0; }
+  .site-header.is-solid .logo .on-light { opacity: 1; }
+  .site-header.is-solid .logo .on-dark { opacity: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .site-header.is-solid .logo, .site-header.show-logo .logo { opacity: 1; }
+  .site-header nav { display: flex; gap: 28px; }
+  @media (max-width: 900px) { .site-header nav { display: none; } }
+  .site-header { padding-top: calc(22px + env(safe-area-inset-top, 0px)); }
+  /* Phone & tablet menu */
+  .menu-btn { display: none; align-items: center; gap: 10px; border: 0; background: none; padding: 6px 0 6px 12px; color: inherit;
+    font: inherit; font-size: 11px; letter-spacing: .28em; text-transform: uppercase; cursor: pointer; }
+  .menu-btn .bars { position: relative; width: 22px; height: 9px; }
+  .menu-btn .bars::before, .menu-btn .bars::after { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: currentColor; transition: transform .5s ease, top .5s ease; }
+  .menu-btn .bars::before { top: 0; } .menu-btn .bars::after { top: 8px; }
+  .menu-open .menu-btn .bars::before { top: 4px; transform: rotate(45deg); }
+  .menu-open .menu-btn .bars::after { top: 4px; transform: rotate(-45deg); }
+  @media (max-width: 900px) { .menu-btn { display: inline-flex; } }
+  .mobile-menu { position: fixed; inset: 0; z-index: 45; background: var(--ivory); display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 6px; padding: 96px 24px calc(40px + env(safe-area-inset-bottom, 0px)); opacity: 0; visibility: hidden; transition: opacity .5s ease, visibility 0s linear .5s; }
+  .menu-open .mobile-menu { opacity: 1; visibility: visible; transition: opacity .5s ease; }
+  .mobile-menu a { font-family: var(--serif); font-size: clamp(28px, 7vw, 40px); line-height: 1.5; color: var(--burgundy); text-decoration: none;
+    opacity: 0; transform: translateY(10px); transition: opacity .6s ease, transform .6s ease; }
+  .menu-open .mobile-menu a { opacity: 1; transform: none; }
+  .menu-open .mobile-menu a:nth-child(2) { transition-delay: .05s; } .menu-open .mobile-menu a:nth-child(3) { transition-delay: .1s; }
+  .menu-open .mobile-menu a:nth-child(4) { transition-delay: .15s; } .menu-open .mobile-menu a:nth-child(5) { transition-delay: .2s; }
+  .menu-open .mobile-menu a:nth-child(6) { transition-delay: .25s; }
+  .mobile-menu .menu-emblem { width: 76px; height: auto; margin-bottom: 18px; }
+  .menu-open .site-header { color: var(--burgundy); background: transparent; backdrop-filter: none; }
+  .menu-open .site-header .logo { opacity: 1; } .menu-open .site-header .logo .on-light { opacity: 1; } .menu-open .site-header .logo .on-dark { opacity: 0; }
+  .menu-open, .menu-open body { overflow: hidden; }
+
+  /* ---------- Hero ---------- */
+  /* lvh: the scene fills the screen even when a phone's address bar hides, so nothing jumps */
+  .hero { position: relative; height: 100vh; height: 100lvh; overflow: hidden; background: #caa27f; }
+  .layer { position: absolute; inset: 0; will-change: transform; }
+  .layer picture, .layer img { display: block; width: 100%; height: 100%; }
+  .layer img { object-fit: cover; }
+  .layer-fg { transform-origin: 50% 55%; }
+  /* With script on, the garden is drawn on a canvas (only the visible part), so deep zooms stay sharp and light */
+  #bgCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: none; }
+  .js-canvas #bgCanvas { display: block; }
+  .js-canvas #bg picture { visibility: hidden; }
+  .js-canvas #inner { visibility: hidden; }
+  .fg-sway { position: absolute; inset: -2%; animation: sway 11s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+  .fg-sway img { object-fit: cover; }
+  @keyframes sway { from { transform: rotate(-.35deg) translateY(0); } to { transform: rotate(.35deg) translateY(-4px); } }
+
+  /* The inner courtyard, seen through an arch-shaped window that grows with the zoom */
+  .layer-inner {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 170' preserveAspectRatio='none'%3E%3Cpath d='M0 170V62C0 30 28 14 50 0C72 14 100 30 100 62V170Z'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 170' preserveAspectRatio='none'%3E%3Cpath d='M0 170V62C0 30 28 14 50 0C72 14 100 30 100 62V170Z'/%3E%3C/svg%3E");
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    opacity: 0;
+  }
+  .layer-inner.is-open { -webkit-mask-image: none; mask-image: none; }
+  /* Soft, blurred continuation of the courtyard so its photo edges never show inside the arch */
+  .layer-inner .inner-surround { position: absolute; inset: -100%; width: auto; height: auto; }
+  .layer-inner .inner-photo { position: relative;
+    /* feathered edges while travelling, so the photo melts into its soft surround */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+    -webkit-mask-composite: source-in;
+            mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, transparent, #000 7%, #000 93%, transparent);
+            mask-composite: intersect; }
+  .layer-inner.is-open .inner-photo { -webkit-mask-image: none; mask-image: none; }
+
+  canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  .hero-shade { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg, rgba(60,30,20,.28) 0%, rgba(60,30,20,0) 30%); }
+
+  .wordmark {
+    position: absolute; left: 50%; top: 5.5%; transform: translate(-50%, 0);
+    text-align: center; color: var(--ivory); pointer-events: none;
+    text-shadow: 0 2px 24px rgba(60,30,20,.35);
+  }
+  .wordmark h1 { margin: 0; line-height: 0; }
+  .wordmark::before { /* soft sunset glow behind the logo so the fine tagline stays legible */
+    content: ""; position: absolute; inset: -12% -30%; z-index: -1;
+    background: radial-gradient(ellipse at 50% 58%, rgba(255,240,222,.55) 0%, rgba(255,240,222,.22) 45%, rgba(255,240,222,0) 72%); }
+  .wordmark img { display: block; height: min(33vh, 300px); width: auto; margin: 0 auto;
+    filter: drop-shadow(0 2px 18px rgba(255,236,210,.55)) drop-shadow(0 1px 2px rgba(60,30,20,.18)); }
+  @media (max-width: 767px) { .wordmark { top: 4.5%; } .wordmark img { height: auto; width: min(50vw, 210px); } }
+
+  .scrim { position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: radial-gradient(ellipse 60% 42% at 50% 42%, rgba(48,26,18,.5) 0%, rgba(48,26,18,.16) 60%, rgba(48,26,18,0) 100%); }
+  .brandline {
+    position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%);
+    width: min(88vw, 900px); text-align: center; pointer-events: none;
+    color: var(--ivory); opacity: 0;
+  }
+  .brandline .kicker { font-size: 11px; letter-spacing: .4em; text-transform: uppercase; }
+  .brandline h2 { margin-top: 18px; font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(34px, 5.4vw, 76px); line-height: 1.08; }
+  .brandline h2, .brandline .kicker { text-shadow: 0 2px 30px rgba(40,20,12,.45); }
+
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: calc(28px + 100lvh - 100svh); transform: translateX(-50%);
+    color: var(--ivory); font-size: 10px; letter-spacing: .4em; text-transform: uppercase; text-align: center;
+  }
+  .scroll-cue::after { content: ""; display: block; width: 1px; height: 44px; margin: 12px auto 0; background: currentColor; transform-origin: top; animation: cue 2.6s ease-in-out infinite; }
+  @keyframes cue { 0% { transform: scaleY(0); opacity: 1; } 60% { transform: scaleY(1); opacity: 1; } 100% { transform: scaleY(1); opacity: 0; } }
+
+  /* ---------- Product reveal (inside the courtyard) ---------- */
+  .reveal { position: absolute; inset: 0; pointer-events: none; }
+  .reveal.is-live { pointer-events: auto; }
+  .reveal-title {
+    position: absolute; left: 50%; top: clamp(76px, 12vh, 120px); transform: translateX(-50%);
+    width: min(92vw, 1100px); text-align: center; color: var(--ivory);
+    text-shadow: 0 2px 26px rgba(60,30,20,.4);
+  }
+  .reveal-title .kicker { font-size: 11px; letter-spacing: .4em; text-transform: uppercase; }
+  .reveal-title h2 { margin-top: 12px; font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.4vw, 50px); line-height: 1.1; }
+
+  /* The packs stand on the ledge: --ledge-y is set by script from the courtyard photo */
+  .packs {
+    position: absolute; left: 0; right: 0; top: calc(var(--ledge-y, 66vh) - var(--pack-h));
+    display: flex; justify-content: center; align-items: flex-end; gap: var(--pack-gap);
+  }
+  .pack { position: relative; display: block; width: calc(var(--pack-h) * 0.317); height: var(--pack-h); text-decoration: none; }
+  .pack-inner { position: absolute; inset: 0; transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+  .pack img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 2px;
+    box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 8px 14px 26px rgba(70,40,20,.28), 2px 3px 6px rgba(70,40,20,.25); }
+  .pack::after { /* contact shadow on the ledge */
+    content: ""; position: absolute; left: 6%; right: -6%; bottom: -6px; height: 12px; border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(60,35,20,.35), rgba(60,35,20,0) 70%);
+  }
+  .pack:hover .pack-inner, .pack:focus-visible .pack-inner { transform: translateY(-10px); }
+  .pack:focus-visible { outline: 1px solid var(--burgundy); outline-offset: 8px; }
+
+  .labels {
+    position: absolute; left: 0; right: 0; top: calc(var(--ledge-y, 66vh) + clamp(22px, 4vh, 40px));
+    display: flex; justify-content: center; gap: var(--pack-gap);
+  }
+  .labels span { width: calc(var(--pack-h) * 0.317 + 24px); margin: 0 -12px; padding: 8px 6px 9px; text-align: center; font-family: var(--serif); font-size: clamp(13px, 1.4vw, 19px); color: var(--burgundy); line-height: 1.15;
+    background: rgba(244,235,221,.88); box-shadow: 0 6px 18px rgba(70,40,20,.12); }
+  .static-collection .labels span { background: none; box-shadow: none; }
+  .labels small { display: block; margin-top: 4px; font-family: var(--sans); font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: #6d5d50; }
+  @media (max-width: 767px) {
+    .labels small { display: none; }
+    .labels span { width: calc(var(--pack-h) * 0.317); margin: 0; padding: 7px 2px 8px; font-size: 13px; }
+  }
+
+  .cta {
+    position: absolute; left: 50%; bottom: calc(clamp(24px, 6vh, 56px) + 100lvh - 100svh); transform: translateX(-50%);
+    padding: 14px 30px; border: 1px solid var(--burgundy); color: var(--burgundy); background: rgba(244,235,221,.7);
+    font-size: 11px; letter-spacing: .3em; text-transform: uppercase; text-decoration: none; white-space: nowrap;
+    transition: background-color .5s ease, color .5s ease;
+  }
+  .cta:hover { background: var(--burgundy); color: var(--ivory); }
+
+  /* ---------- Following section ---------- */
+  .statement { position: relative; padding: clamp(96px, 16vh, 180px) clamp(16px, 6vw, 80px); text-align: center; }
+  .statement .kicker { font-size: 11px; letter-spacing: .4em; text-transform: uppercase; color: var(--sage); }
+  .statement h3 { margin: 24px auto 0; max-width: 860px; font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.6vw, 48px); line-height: 1.2; color: var(--burgundy); }
+  .ornament { display: block; width: 120px; height: 24px; margin: 40px auto 0; color: var(--gold); }
+  .emblem { display: block; width: clamp(84px, 9vw, 116px); height: auto; margin: 0 auto 30px; }
+  /* ---------- Footer ---------- */
+  .site-footer { position: relative; background: var(--ivory); color: #5a4d44; }
+  .footer-border { display: block; width: 100%; height: 34px; color: var(--gold); }
+  .footer-inner { max-width: 1240px; margin: 0 auto; padding: clamp(56px, 9vh, 96px) clamp(16px, 5vw, 64px) 0;
+    display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr 1.5fr; gap: clamp(28px, 4vw, 56px); }
+  .footer-brand .footer-logo { display: block; width: clamp(140px, 13vw, 180px); height: auto; }
+  .footer-brand .by { margin-top: 22px; font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--sage); }
+  .footer-col h4, .footer-news h4 { font-family: var(--sans); font-weight: 400; font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--burgundy); margin-bottom: 18px; }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 11px; }
+  .footer-col a, .footer-bottom a { color: #5a4d44; text-decoration: none; font-size: 14px; background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size .5s ease, color .4s ease; }
+  .footer-col a:hover, .footer-bottom a:hover { color: var(--burgundy); background-size: 100% 1px; }
+  .tba { display: inline-block; margin-left: 6px; padding: 1px 6px; border: 1px dashed var(--gold); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; color: #8a7a6c; vertical-align: middle; }
+  .footer-news > p:not(.news-note) { font-family: var(--serif); font-size: 20px; line-height: 1.3; color: var(--ink); }
+  .news-form { display: flex; margin-top: 18px; border-bottom: 1px solid var(--gold); }
+  .news-form input { flex: 1; min-width: 0; padding: 12px 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--ink); outline: none; }
+  .news-form input::placeholder { color: #9a8b7d; }
+  .news-form button { border: 0; background: none; padding: 0 0 0 12px; font: inherit; font-size: 11px; letter-spacing: .28em; text-transform: uppercase; color: var(--burgundy); cursor: pointer; }
+  .footer-news .news-note { font-family: var(--sans); line-height: 1.5; margin-top: 10px; font-size: 12px; color: #8a7a6c; min-height: 1.2em; }
+  .footer-contact { margin-top: 28px; display: grid; gap: 8px; font-size: 14px; }
+  .footer-contact a { color: var(--botanical); text-decoration: none; }
+  .footer-bottom { max-width: 1240px; margin: clamp(48px, 8vh, 80px) auto 0; padding: 22px clamp(16px, 5vw, 64px) 28px;
+    border-top: 1px solid rgba(165,138,85,.35); display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; align-items: center; font-size: 12px; color: #8a7a6c; }
+  .footer-bottom nav { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+  .footer-bottom a { font-size: 12px; color: #8a7a6c; }
+  .footer-proto { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px) 32px; }
+  .footer-proto .placeholder-note { margin: 0; max-width: none; }
+  @media (max-width: 1000px) { .footer-inner { grid-template-columns: 1fr 1fr 1fr; } .footer-brand, .footer-news { grid-column: 1 / -1; } }
+  @media (max-width: 600px)  { .footer-inner { grid-template-columns: 1fr 1fr; } .footer-brand { text-align: center; } .footer-brand .footer-logo { margin: 0 auto; }
+    .footer-col:nth-child(4) { grid-column: 1 / -1; } .footer-bottom { justify-content: center; text-align: center; } }
+  .placeholder-note { margin: 72px auto 0; max-width: 560px; padding: 18px 20px; border: 1px dashed var(--gold); font-size: 13px; letter-spacing: .04em; color: #6b5d52; }
+
+  /* ---------- The Art of Incense: the ritual ---------- */
+  .ritual-intro { padding: clamp(88px, 14vh, 150px) clamp(16px, 6vw, 80px) clamp(40px, 7vh, 72px); text-align: center; }
+  .ritual-intro .kicker { font-size: 11px; letter-spacing: .4em; text-transform: uppercase; color: var(--sage); }
+  .ritual-intro h3 { margin-top: 20px; font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(30px, 4vw, 54px); line-height: 1.15; color: var(--burgundy); }
+  .ritual { position: relative; height: 300vh; background: #2a1d17; }
+  .ritual-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
+  .ritual-media, .ritual-media video, .ritual-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 50%; }
+  .ritual-shade { position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(0deg, rgba(30,18,12,.86) 0%, rgba(30,18,12,.5) 18%, rgba(30,18,12,0) 38%); }
+  .ritual-steps { position: absolute; left: 0; right: 0; bottom: clamp(58px, 9vh, 84px); height: 120px; }
+  .step { position: absolute; left: 50%; bottom: 0; width: min(90vw, 620px); transform: translate(-50%, 16px);
+    text-align: center; color: var(--ivory); opacity: 0; transition: opacity 1s ease, transform 1s ease; }
+  .step.is-active { opacity: 1; transform: translate(-50%, 0); }
+  .step .num { font-size: 11px; letter-spacing: .4em; color: #d6b98a; }
+  .step h4 { margin-top: 8px; font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3vw, 42px); line-height: 1.1; }
+  .step p { margin-top: 8px; font-size: 14px; line-height: 1.7; color: rgba(244,235,221,.85); }
+  /* Progress bar drawn as an incense stick: the ember burns along it as you scroll */
+  .stick { position: absolute; left: 50%; bottom: clamp(24px, 4vh, 36px); width: min(64vw, 320px); height: 3px; transform: translateX(-50%);
+    background: #5a3a2c; border-radius: 2px; --p: 0; }
+  .stick::before { /* ash: grows from the lit tip on the right */
+    content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: calc(var(--p) * 100%); background: #b9ada2; border-radius: 2px; opacity: .85; }
+  .stick .ember { position: absolute; top: 50%; right: calc(var(--p) * 100%); width: 7px; height: 7px; margin: -3.5px -3.5px 0 0; border-radius: 50%;
+    background: #ff9a4d; box-shadow: 0 0 8px 3px rgba(255,120,40,.65), 0 0 22px 8px rgba(255,120,40,.25); animation: ember 2.4s ease-in-out infinite; }
+  .stick .ember::after { /* a tiny wisp */
+    content: ""; position: absolute; left: 1px; bottom: 6px; width: 4px; height: 26px; border-radius: 50%;
+    background: linear-gradient(0deg, rgba(244,235,221,.45), rgba(244,235,221,0)); filter: blur(2px); animation: wisp 3.2s ease-in-out infinite; }
+  @keyframes ember { 0%,100% { opacity: .85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.25); } }
+  @keyframes wisp { 0% { transform: translate(0,4px) scaleY(.6); opacity: 0; } 40% { opacity: 1; } 100% { transform: translate(3px,-14px) scaleY(1.2); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    .ritual { height: auto; }
+    .ritual-sticky { position: relative; height: auto; min-height: 100vh; }
+    .ritual-steps { position: relative; bottom: auto; height: auto; display: grid; gap: 28px; padding: 60vh 16px 60px; }
+    .step { position: relative; left: auto; transform: none; margin: 0 auto; opacity: 1; }
+    .stick .ember, .stick .ember::after { animation: none; }
+  }
+
+  /* Static collection, shown only when the visitor has asked for reduced motion */
+  .static-collection { display: none; padding: 80px 16px; text-align: center; }
+  .static-collection .packs, .static-collection .labels { position: static; margin-top: 40px; }
+  .static-collection .labels { margin-top: 20px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fg-sway, .scroll-cue::after { animation: none; }
+    .hero .reveal, .hero .layer-inner { display: none; }
+    .static-collection { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header" id="header">
+  <a class="logo" href="#hero" aria-label="MASAÉ home">
+    <img class="on-dark" src="assets/brand/wordmark-ivory.webp" alt="">
+    <img class="on-light" src="assets/brand/wordmark.webp" alt="">
+  </a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu"><span class="bars" aria-hidden="true"></span><span class="menu-label">Menu</span></button>
+  <nav aria-label="Primary">
+    <span>Shop</span><span>Collection</span><span>Our Story</span><span>The Art of Incense</span><span>Discover Your Scent</span><span>Contact</span>
+  </nav>
+</header>
+<nav class="mobile-menu" id="mobileMenu" aria-label="Menu">
+  <img class="menu-emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749">
+  <a href="#">Shop</a>
+  <a href="#hero">Collection</a>
+  <a href="#">Our Story</a>
+  <a href="#ritual">The Art of Incense</a>
+  <a href="#">Discover Your Scent</a>
+  <a href="#footer">Contact</a>
+</nav>
+
+<main>
+  <!-- HERO: through the palace arch into the inner garden, where the collection waits -->
+  <section class="hero" id="hero" aria-label="MASAÉ, artisanal incense sticks">
+    <!-- 1. The royal garden (outer scene) -->
+    <div class="layer layer-bg" id="bg">
+      <canvas id="bgCanvas" aria-hidden="true"></canvas>
+      <picture>
+        <source media="(max-aspect-ratio: 4/5)" srcset="assets/hero/hero-mobile.jpg">
+        <img src="assets/hero/hero-desktop.jpg" alt="A royal Indian garden at sunset, a palace arch reflected in a long pool lined with tuberose, jasmine and roses" fetchpriority="high">
+      </picture>
+    </div>
+
+    <canvas class="fx" id="haze" aria-hidden="true"></canvas>
+
+    <!-- 2. Foreground flower frame (desktop only) -->
+    <div class="layer layer-fg" id="fg" aria-hidden="true">
+      <div class="fg-sway"><img src="assets/hero/layer-foreground.webp" alt=""></div>
+    </div>
+
+    <!-- 3. The inner courtyard beyond the arch -->
+    <div class="layer layer-inner" id="inner">
+      <picture class="inner-surround" aria-hidden="true">
+        <source media="(max-aspect-ratio: 4/5)" srcset="assets/hero/inner-mobile-surround.jpg">
+        <img src="assets/hero/inner-desktop-surround.jpg" alt="">
+      </picture>
+      <picture class="inner-photo">
+        <source media="(max-aspect-ratio: 4/5)" srcset="assets/hero/inner-mobile.jpg">
+        <img src="assets/hero/inner-desktop.jpg" alt="The palace's inner courtyard garden at sunset, a carved stone ledge in front of blooming jasmine and roses">
+      </picture>
+    </div>
+
+    <canvas class="fx" id="petals" aria-hidden="true"></canvas>
+    <div class="hero-shade"></div>
+
+    <div class="wordmark" id="wordmark">
+      <h1><span class="sr-only">MASAÉ, premium incense sticks</span><img src="assets/brand/logo.webp" alt="MASAÉ, premium incense sticks, rooted in nature" width="909" height="1132" fetchpriority="high"></h1>
+    </div>
+
+    <div class="scrim" id="scrim"></div>
+    <div class="brandline" id="brandline">
+      <p class="kicker">A brand by Awwadh International</p>
+      <h2>A contemporary Indian fragrance house.</h2>
+    </div>
+
+    <!-- 4. Product reveal -->
+    <div class="reveal" id="reveal">
+      <div class="reveal-title" id="revealTitle">
+        <p class="kicker">The Collection</p>
+        <h2>Four fragrances, one royal garden.</h2>
+      </div>
+      <div class="packs" id="packs"></div>
+      <div class="labels" id="labels"></div>
+      <a class="cta" id="cta" href="#collection">Explore the collection</a>
+    </div>
+
+    <div class="scroll-cue" id="cue">Scroll</div>
+  </section>
+
+  <!-- Only visible when reduced motion is on: the same collection, without the journey -->
+  <section class="static-collection" id="collection" aria-label="The collection">
+    <p class="kicker" style="font-size:11px;letter-spacing:.4em;text-transform:uppercase;color:var(--sage)">The Collection</p>
+    <div class="packs" id="packsStatic"></div>
+    <div class="labels" id="labelsStatic"></div>
+  </section>
+
+  <section class="statement">
+    <img class="emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749" loading="lazy">
+    <p class="kicker">The House of MASAÉ</p>
+    <h3>A contemporary Indian fragrance brand built around the art, atmosphere and heritage of incense.</h3>
+  </section>
+
+  <!-- THE ART OF INCENSE: a royal corner, one stick burning (looping film), three steps revealed by scroll -->
+  <section class="ritual-intro" aria-labelledby="ritualTitle">
+    <p class="kicker">The Art of Incense</p>
+    <h3 id="ritualTitle">A ritual of quiet luxury.</h3>
+  </section>
+  <section class="ritual" id="ritual" aria-label="How to burn MASAÉ incense">
+    <div class="ritual-sticky">
+      <div class="ritual-media">
+        <video id="ritualVideo" muted loop playsinline preload="metadata" poster="assets/ritual/royal-corner-poster.jpg" aria-hidden="true">
+          <source src="assets/ritual/royal-corner-loop.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div class="ritual-shade"></div>
+      <div class="ritual-steps">
+        <div class="step" data-step="0"><p class="num">01</p><h4>Light</h4><p>Hold the tip to a flame until it catches.</p></div>
+        <div class="step" data-step="1"><p class="num">02</p><h4>Let it glow</h4><p>Gently blow out the flame and let the ember glow.</p></div>
+        <div class="step" data-step="2"><p class="num">03</p><h4>Let the smoke carry</h4><p>Set it in its holder and let the fragrance fill the room.</p></div>
+      </div>
+      <div class="stick" id="stick" aria-hidden="true"><span class="ember"></span></div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" id="footer">
+  <!-- Botanical border: arch-and-vine motif from the logo, drawn in by scroll -->
+  <svg class="footer-border" viewBox="0 0 1200 34" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+    <path class="draw" d="M0 17H540"/><path class="draw" d="M660 17H1200"/>
+    <path class="draw" d="M540 17c14 0 20-12 34-12s18 12 26 12 12-12 26-12 20 12 34 12"/>
+    <path class="draw" d="M600 3c7 6 7 22 0 28c-7-6-7-22 0-28z"/>
+    <circle cx="566" cy="17" r="2"/><circle cx="634" cy="17" r="2"/>
+  </svg>
+
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img class="footer-logo" src="assets/brand/logo.webp" alt="MASAÉ, premium incense sticks, rooted in nature" width="909" height="1132" loading="lazy">
+      <p class="by">A brand by Awwadh International</p>
+    </div>
+
+    <nav class="footer-col" aria-label="Shop">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="#">Oud &amp; Amber</a></li>
+        <li><a href="#">Tuberose</a></li>
+        <li><a href="#">Blanc Santal</a></li>
+        <li><a href="#">Velvet Rose</a></li>
+        <li><a href="#">Gifting</a><span class="tba">To be added</span></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="The House">
+      <h4>The House</h4>
+      <ul>
+        <li><a href="#">Our Story</a></li>
+        <li><a href="#ritual">The Art of Incense</a></li>
+        <li><a href="#collection">The Collection</a></li>
+        <li><a href="#">Hotels &amp; Spas</a><span class="tba">To be added</span></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="Customer care">
+      <h4>Care</h4>
+      <ul>
+        <li><a href="#">Shipping &amp; Delivery</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Track Your Order</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="footer-news">
+      <h4>The MASAÉ Letter</h4>
+      <p>New fragrances, rituals and stories from the royal garden.</p>
+      <form class="news-form" id="newsForm" novalidate>
+        <label class="sr-only" for="newsEmail">Email address</label>
+        <input id="newsEmail" type="email" placeholder="Your email address" autocomplete="email">
+        <button type="submit">Subscribe</button>
+      </form>
+      <p class="news-note" id="newsNote" aria-live="polite"></p>
+      <div class="footer-contact">
+        <span>WhatsApp <span class="tba">To be added</span></span>
+        <span>Email <span class="tba">To be added</span></span>
+        <span>Instagram <span class="tba">To be added</span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <span>© 2026 MASAÉ · Awwadh International. All rights reserved.</span>
+    <nav aria-label="Legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Refund Policy</a>
+    </nav>
+  </div>
+  <div class="footer-proto">
+    <div class="placeholder-note">Prototype · links go nowhere yet · newsletter is not connected · contact details, gifting and policy pages to be added</div>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script>
+(function () {
+  // Always start the journey from the top, not from a remembered scroll position
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.scrollTo(0, 0);
+
+  /* ---------- Collection data ---------- */
+  var PRODUCTS = [
+    { name: 'Oud &amp; Amber', notes: 'Saffron · Oud · Amber', img: 'pack-oud-amber.webp', alt: 'MASAÉ Oud & Amber artisanal incense sticks pack' },
+    { name: 'Tuberose',        notes: 'Tuberose from Mexico', img: 'pack-tuberose.webp', alt: 'MASAÉ Tuberose artisanal incense sticks pack' },
+    { name: 'Blanc Santal',    notes: 'Sandalwood · Coconut', img: 'pack-blanc-santal.webp', alt: 'MASAÉ Blanc Santal artisanal incense sticks pack' },
+    { name: 'Velvet Rose',     notes: 'Rose from France', img: 'pack-velvet-rose.webp', alt: 'MASAÉ Velvet Rose artisanal incense sticks pack' }
+  ];
+  function renderPacks(packsEl, labelsEl) {
+    packsEl.innerHTML = PRODUCTS.map(function (p) {
+      return '<a class="pack" href="#"><span class="pack-inner"><img src="assets/products/' + p.img + '" alt="' + p.alt + '"></span></a>';
+    }).join('');
+    labelsEl.innerHTML = PRODUCTS.map(function (p) {
+      return '<span>' + p.name + '<small>' + p.notes + '</small></span>';
+    }).join('');
+  }
+  renderPacks(document.getElementById('packs'), document.getElementById('labels'));
+  renderPacks(document.getElementById('packsStatic'), document.getElementById('labelsStatic'));
+
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var hero = document.getElementById('hero');
+  var header = document.getElementById('header');
+  var bg = document.getElementById('bg');
+  var inner = document.getElementById('inner');
+  var reveal = document.getElementById('reveal');
+
+  /* ---------- Where things are in the photos (fractions of the image) ----------
+     cx/cy/ow/oh: centre and size of the inner arch opening in the garden photo
+     ledge: height of the ledge top (where the packs stand) in the courtyard photo */
+  var SCENES = {
+    wide: { iw: 2560, ih: 1448, cx: 0.5047, cy: 0.551, ow: 0.0227, oh: 0.067, ledge: 0.662 },
+    tall: { iw: 1080, ih: 1910, cx: 0.5043, cy: 0.4843, ow: 0.0414, oh: 0.0464, ledge: 0.705 }
+  };
+  // Portrait screens (phones, tablets held upright) use the tall scenes; the <picture> sources use the same test
+  var PORTRAIT_MQ = window.matchMedia('(max-aspect-ratio: 4/5)');
+  var isTouch = window.matchMedia('(pointer: coarse)').matches;
+  var scene, geo = {};
+  var state = { t: 0, settle: 1.08, innerA: 0 };   // t: 0 → 1 is the journey through the arch
+
+  function cover(iw, ih, vw, vh) {
+    var s = Math.max(vw / iw, vh / ih), w = iw * s, h = ih * s;
+    return { w: w, h: h, x: (vw - w) / 2, y: (vh - h) / 2 };
+  }
+  // Arch outline in a 100 × 170 box (pointed top, straight sides); the straight part starts 36.5% down
+  var ARCH_SPRING = 62 / 170;
+  function layout() {
+    scene = PORTRAIT_MQ.matches ? SCENES.tall : SCENES.wide;
+    var vw = hero.clientWidth, vh = hero.clientHeight, r = cover(scene.iw, scene.ih, vw, vh);
+    geo.vw = vw; geo.vh = vh;
+    geo.cx = r.x + scene.cx * r.w;
+    geo.cy = r.y + scene.cy * r.h;
+    geo.ow = scene.ow * r.w;
+    geo.oh = scene.oh * r.h;
+    // Fly exactly until the arch opening covers the whole screen, then stop: no over-zoom, no jump
+    geo.Z = 1.04 * Math.max(
+      2 * geo.cx / geo.ow, 2 * (vw - geo.cx) / geo.ow,
+      geo.cy / (geo.oh * (0.5 - ARCH_SPRING)), 2 * (vh - geo.cy) / geo.oh);
+    hero.style.setProperty('--ledge-y', (r.y + scene.ledge * r.h) + 'px');
+    apply();
+  }
+
+  /* Garden and courtyard are drawn onto one screen-sized canvas: only the part that is visible.
+     The courtyard is drawn inside the arch shape and is always at least as large as the opening,
+     so its photo edges never show. */
+  var bgCanvas = document.getElementById('bgCanvas'), bgCtx = bgCanvas.getContext('2d');
+  var bgImg = bg.querySelector('img');
+  var innerImg = inner.querySelector('.inner-photo img');
+  function sizeBgCanvas() {
+    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
+    bgCanvas.width = Math.round(hero.clientWidth * dpr); bgCanvas.height = Math.round(hero.clientHeight * dpr);
+    bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bgCtx.imageSmoothingQuality = 'high';
+  }
+  function ready(img) { return img.complete && img.naturalWidth > 0; }
+  function drawZoomed(img, S) {
+    var vw = geo.vw, vh = geo.vh, iw = img.naturalWidth, ih = img.naturalHeight, r = cover(iw, ih, vw, vh);
+    var x = geo.cx + (r.x - geo.cx) * S, y = geo.cy + (r.y - geo.cy) * S, w = r.w * S, h = r.h * S;
+    // source rectangle of the part that lands on screen (clamped to the photo)
+    var sx = Math.max(0, -x / w * iw), sy = Math.max(0, -y / h * ih);
+    var sw = Math.min(iw - sx, vw / w * iw), sh = Math.min(ih - sy, vh / h * ih);
+    bgCtx.drawImage(img, sx, sy, sw, sh, x + sx / iw * w, y + sy / ih * h, sw / iw * w, sh / ih * h);
+  }
+  function archPath(x, y, w, h) {
+    var k = h / 170, u = w / 100;
+    bgCtx.beginPath();
+    bgCtx.moveTo(x, y + h);
+    bgCtx.lineTo(x, y + 62 * k);
+    bgCtx.bezierCurveTo(x, y + 30 * k, x + 28 * u, y + 14 * k, x + 50 * u, y);
+    bgCtx.bezierCurveTo(x + 72 * u, y + 14 * k, x + 100 * u, y + 30 * k, x + 100 * u, y + 62 * k);
+    bgCtx.lineTo(x + 100 * u, y + h);
+    bgCtx.closePath();
+  }
+  function apply() {
+    if (!canvasMode) return;
+    var Z = geo.Z, S = Math.exp(state.t * Math.log(Z));      // garden zoom 1 → Z at constant perceived speed
+    var w = geo.ow * S, h = geo.oh * S, ax = geo.cx - w / 2, ay = geo.cy - h / 2;
+    var covered = S >= Z * 0.999;
+    // courtyard scale: slow "far away" parallax, but never smaller than the visible part of the opening
+    var si = Math.pow(S / Z, 0.45) * state.settle;
+    if (ready(innerImg)) {
+      var ri = cover(innerImg.naturalWidth, innerImg.naturalHeight, geo.vw, geo.vh);
+      var L = Math.max(0, ax), R = Math.min(geo.vw, ax + w), T = Math.max(0, ay), B = Math.min(geo.vh, ay + h);
+      si = Math.max(si,
+        (geo.cx - L) / (geo.cx - ri.x), (R - geo.cx) / (ri.x + ri.w - geo.cx),
+        (geo.cy - T) / (geo.cy - ri.y), (B - geo.cy) / (ri.y + ri.h - geo.cy)) ;
+    }
+    if (!covered && ready(bgImg)) drawZoomed(bgImg, S);
+    if (ready(innerImg) && state.innerA > 0.001) {
+      bgCtx.save();
+      if (!covered) { archPath(ax, ay, w, h); bgCtx.clip(); }
+      bgCtx.globalAlpha = covered ? 1 : state.innerA;
+      drawZoomed(innerImg, si);
+      bgCtx.restore();
+    }
+  }
+  var canvasMode = false;
+  layout();
+  window.addEventListener('resize', layout);
+  PORTRAIT_MQ.addEventListener && PORTRAIT_MQ.addEventListener('change', layout);
+
+  /* ---------- Ambient canvases: petals + incense haze ---------- */
+  var fx = { haze: 0.12, petals: 1 };
+  var heroVisible = true;
+  function setupCanvas(id) {
+    var c = document.getElementById(id), ctx = c.getContext('2d');
+    function size() {
+      var dpr = 1;   // soft petals and haze don't need retina resolution
+      c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    size(); window.addEventListener('resize', size);
+    return { c: c, ctx: ctx };
+  }
+  var petalCv = setupCanvas('petals'), hazeCv = setupCanvas('haze');
+  var PETAL_COLORS = ['#EBC9C3', '#E2B3AE', '#F4EBDD', '#C98F8C', '#7D241E'];
+  var isSmall = window.innerWidth < 768;
+  var petals = [], puffs = [];
+  function newPetal(anywhere) {
+    var w = petalCv.c.clientWidth, h = petalCv.c.clientHeight;
+    return { x: Math.random() * w * 1.1 - w * 0.1, y: anywhere ? Math.random() * h : -20,
+      r: 5 + Math.random() * 7, vx: 0.15 + Math.random() * 0.35, vy: 0.25 + Math.random() * 0.45,
+      rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.02, wob: Math.random() * Math.PI * 2,
+      color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)], a: 0.55 + Math.random() * 0.35 };
+  }
+  for (var i = 0; i < (isSmall ? 9 : 16); i++) petals.push(newPetal(true));
+  function drawPetals() {
+    var ctx = petalCv.ctx, w = petalCv.c.clientWidth, h = petalCv.c.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    if (fx.petals <= 0.01) return;
+    petals.forEach(function (p, idx) {
+      p.wob += 0.012; p.rot += p.vr; p.x += p.vx + Math.sin(p.wob) * 0.35; p.y += p.vy;
+      if (p.y > h + 20 || p.x > w + 20) petals[idx] = newPetal(false);
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.globalAlpha = p.a * fx.petals; ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.moveTo(0, -p.r);
+      ctx.bezierCurveTo(p.r * 0.9, -p.r * 0.6, p.r * 0.7, p.r * 0.7, 0, p.r);
+      ctx.bezierCurveTo(-p.r * 0.7, p.r * 0.7, -p.r * 0.9, -p.r * 0.6, 0, -p.r);
+      ctx.fill(); ctx.restore();
+    });
+  }
+  function newPuff() {
+    var w = hazeCv.c.clientWidth, h = hazeCv.c.clientHeight;
+    return { x: w * (0.2 + Math.random() * 0.6), y: h + 60, r: 80 + Math.random() * 140,
+      vy: 0.35 + Math.random() * 0.5, vx: (Math.random() - 0.5) * 0.3, life: 0, max: 700 + Math.random() * 500 };
+  }
+  // One soft puff, drawn once and reused (building gradients every frame is expensive)
+  var puffSprite = document.createElement('canvas'); puffSprite.width = puffSprite.height = 128;
+  (function () {
+    var c = puffSprite.getContext('2d'), g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
+    g.addColorStop(0, 'rgba(250,244,236,1)'); g.addColorStop(1, 'rgba(250,244,236,0)');
+    c.fillStyle = g; c.fillRect(0, 0, 128, 128);
+  })();
+  var hazeWasEmpty = false;
+  function drawHaze() {
+    var ctx = hazeCv.ctx, w = hazeCv.c.clientWidth, h = hazeCv.c.clientHeight;
+    if (fx.haze <= 0.01) { if (!hazeWasEmpty) { ctx.clearRect(0, 0, w, h); hazeWasEmpty = true; } return; }
+    hazeWasEmpty = false;
+    ctx.clearRect(0, 0, w, h);
+    if (puffs.length < (isSmall ? 10 : 18) && Math.random() < 0.08) puffs.push(newPuff());
+    puffs = puffs.filter(function (p) { return p.life < p.max; });
+    puffs.forEach(function (p) {
+      p.life++; p.y -= p.vy; p.x += p.vx + Math.sin(p.life * 0.01) * 0.2; p.r += 0.12;
+      ctx.globalAlpha = Math.sin(p.life / p.max * Math.PI) * 0.16 * fx.haze;
+      ctx.drawImage(puffSprite, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
+    });
+    ctx.globalAlpha = 1;
+  }
+  function loop() { if (heroVisible) { drawPetals(); drawHaze(); } requestAnimationFrame(loop); }
+  if (!reduceMotion) {
+    new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; }).observe(hero);
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- The Art of Incense: play the film only while it is on screen ---------- */
+  var ritual = document.getElementById('ritual'), ritualVideo = document.getElementById('ritualVideo');
+  var stick = document.getElementById('stick'), steps = ritual.querySelectorAll('.step');
+  if (!reduceMotion) {
+    new IntersectionObserver(function (e) {
+      if (e[0].isIntersecting) { var pr = ritualVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      else ritualVideo.pause();
+    }, { threshold: 0 }).observe(ritual);
+  } else {
+    steps.forEach(function (el) { el.classList.add('is-active'); });
+  }
+  function setRitual(p) {
+    stick.style.setProperty('--p', p.toFixed(3));
+    var idx = Math.min(2, Math.floor(p * 3));
+    steps.forEach(function (el, k) { el.classList.toggle('is-active', k === idx); });
+  }
+  setRitual(0);
+
+  /* ---------- Footer ---------- */
+  var newsForm = document.getElementById('newsForm');
+  newsForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = document.getElementById('newsEmail').value.trim();
+    document.getElementById('newsNote').textContent = /.+@.+\..+/.test(v)
+      ? 'Thank you. (Prototype: sign-up is not connected yet.)'
+      : 'Please enter a valid email address.';
+  });
+
+  /* ---------- Phone & tablet menu ---------- */
+  var menuBtn = document.getElementById('menuBtn'), mobileMenu = document.getElementById('mobileMenu');
+  function setMenu(open) {
+    document.documentElement.classList.toggle('menu-open', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn.querySelector('.menu-label').textContent = open ? 'Close' : 'Menu';
+    if (window.__lenis) { open ? window.__lenis.stop() : window.__lenis.start(); }
+  }
+  menuBtn.addEventListener('click', function () { setMenu(!document.documentElement.classList.contains('menu-open')); });
+  mobileMenu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+
+  /* ---------- Header ---------- */
+  var pinProgress = 0;
+  function updateHeader() {
+    header.classList.toggle('is-solid', hero.getBoundingClientRect().bottom < 80);
+    header.classList.toggle('show-logo', pinProgress > 0.1);
+  }
+  window.addEventListener('scroll', updateHeader, { passive: true });
+  updateHeader();
+
+  /* ---------- Scroll timeline ---------- */
+  if (!window.gsap || reduceMotion) return;
+  canvasMode = true;
+  document.documentElement.classList.add('js-canvas');
+  sizeBgCanvas();
+  window.addEventListener('resize', function () { sizeBgCanvas(); apply(); });
+  // redraw when a photo arrives (the <picture> may also swap between wide and tall on rotate)
+  bgImg.addEventListener('load', apply); innerImg.addEventListener('load', apply);
+  apply();
+  ScrollTrigger.config({ ignoreMobileResize: true });
+  gsap.registerPlugin(ScrollTrigger);
+  // Smooth, eased wheel scrolling so the scroll-linked journey glides instead of stepping
+  var lenis = null;
+  if (window.Lenis && !isTouch) {
+    lenis = new Lenis({ duration: 1.15, easing: function (x) { return 1 - Math.pow(1 - x, 3.2); }, smoothWheel: true });
+    window.__lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
+    gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+    gsap.ticker.lagSmoothing(0);
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var id = a.getAttribute('href'); if (id.length < 2) return;
+        var el = document.querySelector(id); if (!el) return;
+        e.preventDefault(); lenis.scrollTo(el, { duration: 1.6 });
+      });
+    });
+  }
+  var mm = gsap.matchMedia();
+
+  mm.add({ desktop: '(min-aspect-ratio: 4/5)', mobile: '(max-aspect-ratio: 4/5)' }, function (ctx) {
+    var desktop = !ctx.conditions.mobile;
+    layout();
+    if (!desktop) gsap.set('#fg', { display: 'none' });
+    gsap.set(['#revealTitle', '#labels', '#cta'], { autoAlpha: 0, y: 24 });
+    gsap.set('#packs .pack', { autoAlpha: 0, y: 70 });
+
+    var tl = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: hero, start: 'top top', end: desktop ? '+=320%' : '+=260%',
+        scrub: lenis ? 0.5 : 0.9, pin: true, anticipatePin: 1,
+        onUpdate: function (self) { pinProgress = self.progress; updateHeader(); reveal.classList.toggle('is-live', self.progress > 0.8); }
+      }
+    });
+
+    // 0.00 – 0.12  wordmark and scroll cue leave; the courtyard appears in the arch opening
+    tl.to('#cue',      { autoAlpha: 0, duration: 0.04 }, 0)
+      .to('#wordmark', { autoAlpha: 0, y: -40, duration: 0.10 }, 0.02)
+      .to(state,       { innerA: 1, duration: 0.08, onUpdate: apply }, 0.02)
+    // 0.00 – 0.50  the journey: through the garden and the palace arch
+      .to(state,       { t: 1, duration: 0.50, ease: 'power1.in', onUpdate: apply }, 0)
+      .to('#fg',       { scale: 1.9, duration: 0.24 }, 0)
+      .to('#fg',       { autoAlpha: 0, duration: 0.10 }, 0.14)
+      .to('#scrim',    { opacity: 1, duration: 0.06 }, 0.08)
+      .fromTo('#brandline', { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.07 }, 0.09)
+      .to(['#brandline', '#scrim'], { autoAlpha: 0, y: -20, duration: 0.07 }, 0.27)
+      .to(fx,          { haze: 0.9, duration: 0.12 }, 0.30)      // incense haze as we pass through the arch
+      .to(fx,          { petals: 0.2, duration: 0.10 }, 0.32)
+    // 0.50 – 0.64  arrive in the courtyard and settle
+      .to(state,       { settle: 1, duration: 0.14, ease: 'power2.out', onUpdate: apply }, 0.50)
+      .to(fx,          { haze: 0.15, petals: 0.7, duration: 0.12 }, 0.50)
+    // 0.58 – 0.90  the collection is revealed on the ledge
+      .to('#revealTitle', { autoAlpha: 1, y: 0, duration: 0.08 }, 0.58)
+      .to('#packs .pack', { autoAlpha: 1, y: 0, duration: 0.12, stagger: 0.04, ease: 'power2.out' }, 0.62)
+      .to('#labels',      { autoAlpha: 1, y: 0, duration: 0.08 }, 0.80)
+      .to('#cta',         { autoAlpha: 1, y: 0, duration: 0.06 }, 0.85)
+    // 0.90 – 1.00  hold on the collection before the page moves on
+      .to({}, { duration: 0.10 }, 0.90);
+
+    return function () {
+      state.t = 0; state.settle = 1.08; state.innerA = 0; fx.haze = 0.12; fx.petals = 1;
+      gsap.set('#fg', { clearProps: 'display' });
+    };
+  });
+
+  // The ritual: three steps across the sticky section; the ember burns along the stick
+  ScrollTrigger.create({ trigger: ritual, start: 'top top', end: 'bottom bottom',
+    onUpdate: function (self) { setRitual(self.progress); } });
+  // Play the film whenever any part of the section is on screen (backs up the IntersectionObserver)
+  ScrollTrigger.create({ trigger: ritual, start: 'top bottom', end: 'bottom top',
+    onToggle: function (self) {
+      if (self.isActive) { var pr = ritualVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }
+      else ritualVideo.pause();
+    } });
+
+  // Footer border draws itself in
+  document.querySelectorAll('.footer-border .draw').forEach(function (path) {
+    var len = path.getTotalLength();
+    gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len }, { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut',
+      scrollTrigger: { trigger: '.site-footer', start: 'top 92%' } });
+  });
+
+  ScrollTrigger.addEventListener('refreshInit', layout);
+  window.addEventListener('load', function () { ScrollTrigger.refresh(); });
+})();
+</script>
+</body>
+</html>
