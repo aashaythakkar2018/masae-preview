@@ -547,10 +547,14 @@
   var bgCanvas = document.getElementById('bgCanvas'), bgCtx = bgCanvas.getContext('2d');
   var bgImg = bg.querySelector('img');
   var innerImg = inner.querySelector('.inner-photo img');
+  // The bitmap always matches the canvas's own on-screen box, both axes, so nothing is left undrawn or stretched
   function sizeBgCanvas() {
     var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
-    bgCanvas.width = Math.round(hero.clientWidth * dpr); bgCanvas.height = Math.round(hero.clientHeight * dpr);
-    bgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var cw = bgCanvas.clientWidth || hero.clientWidth, ch = bgCanvas.clientHeight || hero.clientHeight;
+    var bw = Math.max(1, Math.round(cw * dpr)), bh = Math.max(1, Math.round(ch * dpr));
+    if (bgCanvas.width !== bw) bgCanvas.width = bw;
+    if (bgCanvas.height !== bh) bgCanvas.height = bh;
+    bgCtx.setTransform(bw / cw, 0, 0, bh / ch, 0, 0);
     bgCtx.imageSmoothingQuality = 'high';
   }
   function ready(img) { return img.complete && img.naturalWidth > 0; }
@@ -586,6 +590,7 @@
         (geo.cx - L) / (geo.cx - ri.x), (R - geo.cx) / (ri.x + ri.w - geo.cx),
         (geo.cy - T) / (geo.cy - ri.y), (B - geo.cy) / (ri.y + ri.h - geo.cy)) ;
     }
+    bgCtx.fillStyle = '#caa27f'; bgCtx.fillRect(0, 0, geo.vw, geo.vh);
     if (!covered && ready(bgImg)) drawZoomed(bgImg, S);
     if (ready(innerImg) && state.innerA > 0.001) {
       bgCtx.save();
@@ -607,10 +612,13 @@
     var c = document.getElementById(id), ctx = c.getContext('2d');
     function size() {
       var dpr = 1;   // soft petals and haze don't need retina resolution
-      c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+      var w = Math.round(c.clientWidth * dpr), h = Math.round(c.clientHeight * dpr);
+      if (c.width === w && c.height === h) return;
+      c.width = w; c.height = h;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
     size(); window.addEventListener('resize', size);
+    if (window.ResizeObserver) new ResizeObserver(size).observe(c);
     return { c: c, ctx: ctx };
   }
   var petalCv = setupCanvas('petals'), hazeCv = setupCanvas('haze');
@@ -727,7 +735,9 @@
   canvasMode = true;
   document.documentElement.classList.add('js-canvas');
   sizeBgCanvas();
-  window.addEventListener('resize', function () { sizeBgCanvas(); apply(); });
+  function onHeroResize() { layout(); sizeBgCanvas(); apply(); }
+  window.addEventListener('resize', onHeroResize);
+  if (window.ResizeObserver) new ResizeObserver(onHeroResize).observe(hero);
   // redraw when a photo arrives (the <picture> may also swap between wide and tall on rotate)
   bgImg.addEventListener('load', apply); innerImg.addEventListener('load', apply);
   apply();
