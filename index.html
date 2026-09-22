@@ -119,11 +119,8 @@
     text-shadow: 0 2px 24px rgba(60,30,20,.35);
   }
   .wordmark h1 { margin: 0; line-height: 0; }
-  .wordmark::before { /* soft sunset glow behind the logo so the fine tagline stays legible */
-    content: ""; position: absolute; inset: -12% -30%; z-index: -1;
-    background: radial-gradient(ellipse at 50% 58%, rgba(255,240,222,.55) 0%, rgba(255,240,222,.22) 45%, rgba(255,240,222,0) 72%); }
   .wordmark img { display: block; height: min(33vh, 300px); width: auto; margin: 0 auto;
-    filter: drop-shadow(0 2px 18px rgba(255,236,210,.55)) drop-shadow(0 1px 2px rgba(60,30,20,.18)); }
+  }
   @media (max-width: 767px) { .wordmark { top: 4.5%; } .wordmark img { height: auto; width: min(50vw, 210px); } }
 
   .scrim { position: absolute; inset: 0; pointer-events: none; opacity: 0;
@@ -606,7 +603,7 @@
   PORTRAIT_MQ.addEventListener && PORTRAIT_MQ.addEventListener('change', layout);
 
   /* ---------- Ambient canvases: petals + incense haze ---------- */
-  var fx = { haze: 0.12, petals: 1 };
+  var fx = { haze: 0, petals: 1 };
   var heroVisible = true;
   function setupCanvas(id) {
     var c = document.getElementById(id), ctx = c.getContext('2d');
@@ -657,7 +654,7 @@
   var puffSprite = document.createElement('canvas'); puffSprite.width = puffSprite.height = 128;
   (function () {
     var c = puffSprite.getContext('2d'), g = c.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, 'rgba(250,244,236,1)'); g.addColorStop(1, 'rgba(250,244,236,0)');
+    g.addColorStop(0, 'rgba(238,220,198,1)'); g.addColorStop(0.55, 'rgba(238,220,198,.45)'); g.addColorStop(1, 'rgba(238,220,198,0)');
     c.fillStyle = g; c.fillRect(0, 0, 128, 128);
   })();
   var hazeWasEmpty = false;
@@ -670,7 +667,7 @@
     puffs = puffs.filter(function (p) { return p.life < p.max; });
     puffs.forEach(function (p) {
       p.life++; p.y -= p.vy; p.x += p.vx + Math.sin(p.life * 0.01) * 0.2; p.r += 0.12;
-      ctx.globalAlpha = Math.sin(p.life / p.max * Math.PI) * 0.16 * fx.haze;
+      ctx.globalAlpha = Math.sin(p.life / p.max * Math.PI) * 0.1 * fx.haze;
       ctx.drawImage(puffSprite, p.x - p.r, p.y - p.r, p.r * 2, p.r * 2);
     });
     ctx.globalAlpha = 1;
@@ -788,11 +785,11 @@
       .to('#scrim',    { opacity: 1, duration: 0.06 }, 0.08)
       .fromTo('#brandline', { autoAlpha: 0, y: 24 }, { autoAlpha: 1, y: 0, duration: 0.07 }, 0.09)
       .to(['#brandline', '#scrim'], { autoAlpha: 0, y: -20, duration: 0.07 }, 0.27)
-      .to(fx,          { haze: 0.9, duration: 0.12 }, 0.30)      // incense haze as we pass through the arch
+      .to(fx,          { haze: 0.7, duration: 0.12 }, 0.30)      // incense haze as we pass through the arch
       .to(fx,          { petals: 0.2, duration: 0.10 }, 0.32)
     // 0.50 – 0.64  arrive in the courtyard and settle
       .to(state,       { settle: 1, duration: 0.14, ease: 'power2.out', onUpdate: apply }, 0.50)
-      .to(fx,          { haze: 0.15, petals: 0.7, duration: 0.12 }, 0.50)
+      .to(fx,          { haze: 0, petals: 0.7, duration: 0.12 }, 0.50)
     // 0.58 – 0.90  the collection is revealed on the ledge
       .to('#revealTitle', { autoAlpha: 1, y: 0, duration: 0.08 }, 0.58)
       .to('#packs .pack', { autoAlpha: 1, y: 0, duration: 0.12, stagger: 0.04, ease: 'power2.out' }, 0.62)
@@ -802,7 +799,7 @@
       .to({}, { duration: 0.10 }, 0.90);
 
     return function () {
-      state.t = 0; state.settle = 1.08; state.innerA = 0; fx.haze = 0.12; fx.petals = 1;
+      state.t = 0; state.settle = 1.08; state.innerA = 0; fx.haze = 0; fx.petals = 1;
       gsap.set('#fg', { clearProps: 'display' });
     };
   });
