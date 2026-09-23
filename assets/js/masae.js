@@ -1,0 +1,131 @@
+/* MASAÉ — shared behaviour for every page.
+   Exposes window.MASAE = { reduceMotion, lenis, isTouch, petals(canvas) }.
+   Load after GSAP/ScrollTrigger/Lenis and before any page script. */
+window.MASAE = (function () {
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isTouch = window.matchMedia('(pointer: coarse)').matches;
+
+  /* ---------- Phone & tablet menu ---------- */
+  var menuBtn = document.getElementById('menuBtn');
+  var mobileMenu = document.getElementById('mobileMenu');
+  var lenis = null;
+
+  function setMenu(open) {
+    document.documentElement.classList.toggle('menu-open', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn.querySelector('.menu-label').textContent = open ? 'Close' : 'Menu';
+    if (lenis) { open ? lenis.stop() : lenis.start(); }
+  }
+  if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', function () { setMenu(!document.documentElement.classList.contains('menu-open')); });
+    mobileMenu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { setMenu(false); }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+  }
+
+  /* ---------- Header: solid once the opening scene has passed ---------- */
+  var header = document.getElementById('header');
+  var headerWatch = document.querySelector('[data-header-watch]');   // the page's opening scene
+  function updateHeader() {
+    if (!header) return;
+    var past = headerWatch ? headerWatch.getBoundingClientRect().bottom < 80 : window.scrollY > 40;
+    header.classList.toggle('is-solid', past);
+  }
+  window.addEventListener('scroll', updateHeader, { passive: true });
+  window.addEventListener('resize', updateHeader);
+  updateHeader();
+
+  /* ---------- Smooth wheel scrolling (desktop pointers only) ---------- */
+  if (window.Lenis && !isTouch && !reduceMotion) {
+    lenis = new Lenis({ duration: 1.15, easing: function (x) { return 1 - Math.pow(1 - x, 3.2); }, smoothWheel: true });
+    if (window.ScrollTrigger) lenis.on('scroll', ScrollTrigger.update);
+    if (window.gsap) {
+      gsap.ticker.add(function (time) { lenis.raf(time * 1000); });
+      gsap.ticker.lagSmoothing(0);
+    }
+    document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+      a.addEventListener('click', function (e) {
+        var id = a.getAttribute('href');
+        if (id.length < 2) return;
+        var el = document.querySelector(id);
+        if (!el) return;
+        e.preventDefault();
+        lenis.scrollTo(el, { duration: 1.6 });
+      });
+    });
+  }
+
+  /* ---------- Footer newsletter (prototype: validates, does not send) ---------- */
+  var newsForm = document.getElementById('newsForm');
+  if (newsForm) {
+    newsForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var v = document.getElementById('newsEmail').value.trim();
+      document.getElementById('newsNote').textContent = /.+@.+\..+/.test(v)
+        ? 'Thank you. (Prototype: sign-up is not connected yet.)'
+        : 'Please enter a valid email address.';
+    });
+  }
+
+  /* ---------- Drifting petals, used by several pages ---------- */
+  var PETAL_COLORS = ['#EBC9C3', '#E2B3AE', '#F4EBDD', '#C98F8C', '#7D241E'];
+  function petals(canvas, opts) {
+    if (!canvas || reduceMotion) return;
+    opts = opts || {};
+    var ctx = canvas.getContext('2d');
+    var count = opts.count || (window.innerWidth < 768 ? 8 : 14);
+    var alpha = opts.alpha == null ? 1 : opts.alpha;
+    var list = [], visible = true;
+
+    function size() {
+      var w = Math.round(canvas.clientWidth), h = Math.round(canvas.clientHeight);
+      if (canvas.width === w && canvas.height === h) return;
+      canvas.width = w; canvas.height = h;
+    }
+    function make(anywhere) {
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      return { x: Math.random() * w * 1.1 - w * 0.1, y: anywhere ? Math.random() * h : -20,
+        r: 5 + Math.random() * 7, vx: 0.15 + Math.random() * 0.35, vy: 0.25 + Math.random() * 0.45,
+        rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.02, wob: Math.random() * Math.PI * 2,
+        color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)], a: 0.5 + Math.random() * 0.35 };
+    }
+    function draw() {
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0, 0, w, h);
+      list.forEach(function (p, i) {
+        p.wob += 0.012; p.rot += p.vr; p.x += p.vx + Math.sin(p.wob) * 0.35; p.y += p.vy;
+        if (p.y > h + 20 || p.x > w + 20) list[i] = make(false);
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.globalAlpha = p.a * alpha; ctx.fillStyle = p.color;
+        ctx.beginPath(); ctx.moveTo(0, -p.r);
+        ctx.bezierCurveTo(p.r * 0.9, -p.r * 0.6, p.r * 0.7, p.r * 0.7, 0, p.r);
+        ctx.bezierCurveTo(-p.r * 0.7, p.r * 0.7, -p.r * 0.9, -p.r * 0.6, 0, -p.r);
+        ctx.fill(); ctx.restore();
+      });
+    }
+    function loop() { if (visible) draw(); requestAnimationFrame(loop); }
+
+    size();
+    window.addEventListener('resize', size);
+    if (window.ResizeObserver) new ResizeObserver(size).observe(canvas);
+    for (var i = 0; i < count; i++) list.push(make(true));
+    new IntersectionObserver(function (e) { visible = e[0].isIntersecting; }).observe(canvas);
+    requestAnimationFrame(loop);
+  }
+
+  /* ---------- Reveal on scroll: [data-reveal] elements rise into place ---------- */
+  function reveals() {
+    var els = document.querySelectorAll('[data-reveal]');
+    if (!els.length) return;
+    if (reduceMotion || !window.gsap || !window.ScrollTrigger) {
+      els.forEach(function (el) { el.style.opacity = 1; el.style.transform = 'none'; });
+      return;
+    }
+    els.forEach(function (el) {
+      gsap.fromTo(el, { autoAlpha: 0, y: 26 },
+        { autoAlpha: 1, y: 0, duration: 1.1, ease: 'power2.out', delay: parseFloat(el.dataset.reveal) || 0,
+          scrollTrigger: { trigger: el, start: 'top 88%' } });
+    });
+  }
+
+  return { reduceMotion: reduceMotion, isTouch: isTouch, lenis: lenis, petals: petals, reveals: reveals, updateHeader: updateHeader };
+})();

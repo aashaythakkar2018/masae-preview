@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop MASAÉ Incense</title>
+<meta name="description" content="The MASAÉ collection: Oud &amp; Amber, Tuberose, Blanc Santal, Velvet Rose and the Discovery Set. 50 g, 30 sticks per packet.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/masae.css">
+<link rel="icon" type="image/png" href="assets/brand/favicon.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
+<style>
+  .shop-head { position: relative; padding: clamp(130px, 20vh, 200px) clamp(16px, 6vw, 80px) clamp(36px, 6vh, 64px); text-align: center; }
+  .shop-head .emblem { display: block; width: clamp(70px, 7vw, 92px); height: auto; margin: 0 auto 22px; }
+  .shop-head h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 5.6vw, 76px); line-height: 1.05; color: var(--burgundy); }
+  .shop-head p { margin: 18px auto 0; max-width: 520px; font-size: 16px; line-height: 1.8; color: var(--muted); }
+
+  .listings { max-width: 1240px; margin: 0 auto; padding: clamp(24px, 4vh, 48px) clamp(16px, 5vw, 64px) clamp(60px, 10vh, 110px);
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 3.4vw, 56px); }
+  @media (max-width: 1000px) { .listings { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 620px)  { .listings { grid-template-columns: 1fr; max-width: 420px; } }
+
+  .card { display: flex; flex-direction: column; }
+  .card-media { position: relative; aspect-ratio: 2 / 3; overflow: hidden; background: linear-gradient(170deg, #fbf5ea 0%, #efe3d2 100%); }
+  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(20px, 3vw, 40px) 0;
+    transition: opacity .8s ease, transform 1.1s cubic-bezier(.2,.7,.2,1); }
+  .card-media .back { opacity: 0; }
+  .card:hover .card-media .front, .card:focus-within .card-media .front { opacity: 0; transform: translateY(-6px); }
+  .card:hover .card-media .back,  .card:focus-within .card-media .back  { opacity: 1; transform: translateY(-6px); }
+  .card-media .flip-hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); font-size: 9px; letter-spacing: .28em;
+    text-transform: uppercase; color: var(--muted); opacity: 0; transition: opacity .5s ease; }
+  .card:hover .flip-hint { opacity: 1; }
+  @media (hover: none) { .card-media .flip-hint { display: none; } }
+
+  .card-body { padding-top: 20px; display: flex; flex-direction: column; flex: 1; }
+  .card h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.15; color: var(--burgundy); }
+  .card .notes { margin-top: 6px; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--sage); }
+  .card .story { margin-top: 12px; font-size: 14px; line-height: 1.75; color: var(--muted); }
+  .card .spec { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+    padding-top: 14px; border-top: 1px solid rgba(165,138,85,.35); }
+  .card .price { font-family: var(--serif); font-size: 24px; color: var(--ink); }
+  .card .pack { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .card .actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+  .card .soon { font-size: 12px; color: var(--muted); }
+
+  .card-set .card-media { background: linear-gradient(170deg, #f7efe1 0%, #e8dac6 100%); }
+  .card-set .slot { position: absolute; inset: clamp(16px, 2.4vw, 28px); border: 1px dashed var(--gold);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 18px; }
+  .card-set .slot .label { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
+  .card-set .slot .desc { font-family: var(--serif); font-size: 19px; line-height: 1.35; color: var(--burgundy); }
+  .card-set .slot img { position: static; width: 54px; height: auto; padding: 0; opacity: .8; }
+
+  .shop-foot { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px) clamp(70px, 12vh, 130px); text-align: center; }
+  .shop-foot h3 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(26px, 3.4vw, 44px); line-height: 1.2; color: var(--burgundy); }
+  .shop-foot p { margin: 16px auto 26px; max-width: 480px; font-size: 15px; line-height: 1.8; color: var(--muted); }
+  .shop-foot .placeholder-note { margin-top: clamp(40px, 7vh, 72px); }
+</style>
+</head>
+<body>
+
+<header class="site-header is-solid" id="header">
+  <a class="logo" href="index.html" aria-label="MASAÉ home">
+    <img class="on-dark" src="assets/brand/wordmark-ivory.webp" alt="">
+    <img class="on-light" src="assets/brand/wordmark.webp" alt="">
+  </a>
+  <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu"><span class="bars" aria-hidden="true"></span><span class="menu-label">Menu</span></button>
+  <nav aria-label="Primary">
+    <a href="shop.html" aria-current="page">Shop</a><a href="#">Our Story</a><a href="contact.html">Contact</a>
+  </nav>
+</header>
+<nav class="mobile-menu" id="mobileMenu" aria-label="Menu">
+  <img class="menu-emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749">
+  <a href="shop.html">Shop</a>
+  <a href="#">Our Story</a>
+  <a href="contact.html">Contact</a>
+</nav>
+
+<main>
+  <section class="shop-head">
+    <img class="emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749">
+    <p class="kicker">The Collection</p>
+    <h1>Four fragrances,<br>one royal garden.</h1>
+    <p>Hand-rolled incense in 50 g packets of 30 sticks. Hover a pack to read its back.</p>
+  </section>
+
+  <section class="listings" aria-label="Products">
+    <article class="card" data-reveal="0">
+      <div class="card-media">
+        <img class="front" src="assets/products/pack-oud-amber.webp" alt="MASAÉ Oud &amp; Amber pack, front" loading="lazy">
+        <img class="back" src="assets/products/pack-oud-amber-back.webp" alt="MASAÉ Oud &amp; Amber pack, back" loading="lazy">
+        <span class="flip-hint">Back of pack</span>
+      </div>
+      <div class="card-body">
+        <h2>Oud &amp; Amber</h2>
+        <p class="notes">Saffron · Oud · Amber</p>
+        <p class="story">Agarwood from India with warm amber, lifted by saffron. Dark woods and soft smoke, opulent and intimate.</p>
+        <div class="spec"><span class="price">₹899</span><span class="pack">50 g · 30 sticks</span></div>
+        <div class="actions">
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20order%20MASA%C3%89%20Oud%20%26%20Amber%20(50%20g%2C%2030%20sticks)." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-reveal="0.06">
+      <div class="card-media">
+        <img class="front" src="assets/products/pack-tuberose.webp" alt="MASAÉ Tuberose pack, front" loading="lazy">
+        <img class="back" src="assets/products/pack-tuberose-back.webp" alt="MASAÉ Tuberose pack, back" loading="lazy">
+        <span class="flip-hint">Back of pack</span>
+      </div>
+      <div class="card-body">
+        <h2>Tuberose</h2>
+        <p class="notes">Tuberose from Mexico</p>
+        <p class="story">A lush reading of the white flower: creamy, intoxicating and luminous, romantic without ever turning sweet.</p>
+        <div class="spec"><span class="price">₹899</span><span class="pack">50 g · 30 sticks</span></div>
+        <div class="actions">
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20order%20MASA%C3%89%20Tuberose%20(50%20g%2C%2030%20sticks)." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-reveal="0.12">
+      <div class="card-media">
+        <img class="front" src="assets/products/pack-blanc-santal.webp" alt="MASAÉ Blanc Santal pack, front" loading="lazy">
+        <img class="back" src="assets/products/pack-blanc-santal-back.webp" alt="MASAÉ Blanc Santal pack, back" loading="lazy">
+        <span class="flip-hint">Back of pack</span>
+      </div>
+      <div class="card-body">
+        <h2>Blanc Santal</h2>
+        <p class="notes">Sandalwood · Creamy coconut</p>
+        <p class="story">Sandalwood from India softened by coconut. Creamy warmth and quiet luxury, serene from the first thread of smoke.</p>
+        <div class="spec"><span class="price">₹899</span><span class="pack">50 g · 30 sticks</span></div>
+        <div class="actions">
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20order%20MASA%C3%89%20Blanc%20Santal%20(50%20g%2C%2030%20sticks)." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card" data-reveal="0.18">
+      <div class="card-media">
+        <img class="front" src="assets/products/pack-velvet-rose.webp" alt="MASAÉ Velvet Rose pack, front" loading="lazy">
+        <img class="back" src="assets/products/pack-velvet-rose-back.webp" alt="MASAÉ Velvet Rose pack, back" loading="lazy">
+        <span class="flip-hint">Back of pack</span>
+      </div>
+      <div class="card-body">
+        <h2>Velvet Rose</h2>
+        <p class="notes">Rose from France · Cashmere rose</p>
+        <p class="story">A mesmerising rose wrapped in cashmere warmth. Sweet florals held calm, sensual and elegant.</p>
+        <div class="spec"><span class="price">₹899</span><span class="pack">50 g · 30 sticks</span></div>
+        <div class="actions">
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20order%20MASA%C3%89%20Velvet%20Rose%20(50%20g%2C%2030%20sticks)." target="_blank" rel="noopener">Order on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+
+    <article class="card card-set" data-reveal="0.24">
+      <div class="card-media">
+        <div class="slot">
+          <img src="assets/brand/emblem.webp" alt="" width="790" height="749">
+          <span class="desc">All four fragrances,<br>in one box</span>
+          <span class="label">Photograph to be added</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <h2>Discovery Set</h2>
+        <p class="notes">Oud &amp; Amber · Tuberose · Blanc Santal · Velvet Rose</p>
+        <p class="story">The whole garden in one box: every fragrance in the collection, made for gifting and for finding your own.</p>
+        <div class="spec"><span class="price">Price<span class="tba">To be added</span></span><span class="pack">Contents to be confirmed</span></div>
+        <div class="actions">
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20ask%20about%20the%20MASA%C3%89%20Discovery%20Set." target="_blank" rel="noopener">Ask on WhatsApp</a>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="shop-foot">
+    <h3>Not sure which to light first?</h3>
+    <p>Tell us about the room and the mood, and we will suggest a fragrance.</p>
+    <a class="btn btn-solid" href="contact.html">Write to us</a>
+    <div class="placeholder-note">Prototype · orders go through WhatsApp for now · cart, checkout, shipping and gift options arrive with the full build</div>
+  </section>
+</main>
+
+<footer class="site-footer" id="footer">
+  <svg class="footer-border" viewBox="0 0 1200 34" preserveAspectRatio="none" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+    <path class="draw" d="M0 17H540"/><path class="draw" d="M660 17H1200"/>
+    <path class="draw" d="M540 17c14 0 20-12 34-12s18 12 26 12 12-12 26-12 20 12 34 12"/>
+    <path class="draw" d="M600 3c7 6 7 22 0 28c-7-6-7-22 0-28z"/>
+    <circle cx="566" cy="17" r="2"/><circle cx="634" cy="17" r="2"/>
+  </svg>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <img class="footer-logo" src="assets/brand/logo.webp" alt="MASAÉ, premium incense sticks, rooted in nature" width="909" height="1132" loading="lazy">
+      <p class="by">A brand by Awwadh International</p>
+    </div>
+    <nav class="footer-col" aria-label="Shop">
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="shop.html">Oud &amp; Amber</a></li>
+        <li><a href="shop.html">Tuberose</a></li>
+        <li><a href="shop.html">Blanc Santal</a></li>
+        <li><a href="shop.html">Velvet Rose</a></li>
+        <li><a href="shop.html">Discovery Set</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="The House">
+      <h4>The House</h4>
+      <ul>
+        <li><a href="#">Our Story</a><span class="tba">To be added</span></li>
+        <li><a href="index.html#ritual">The Art of Incense</a></li>
+        <li><a href="shop.html">The Collection</a></li>
+        <li><a href="contact.html">Hotels &amp; Spas</a></li>
+      </ul>
+    </nav>
+    <nav class="footer-col" aria-label="Customer care">
+      <h4>Care</h4>
+      <ul>
+        <li><a href="#">Shipping &amp; Delivery</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">Track Your Order</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="footer-news">
+      <h4>The MASAÉ Letter</h4>
+      <p>New fragrances, rituals and stories from the royal garden.</p>
+      <form class="news-form" id="newsForm" novalidate>
+        <label class="sr-only" for="newsEmail">Email address</label>
+        <input id="newsEmail" type="email" placeholder="Your email address" autocomplete="email">
+        <button type="submit">Subscribe</button>
+      </form>
+      <p class="news-note" id="newsNote" aria-live="polite"></p>
+      <div class="footer-contact">
+        <a href="https://wa.me/919170663334" target="_blank" rel="noopener">WhatsApp +91 91706 63334</a>
+        <a href="mailto:business.awadhinternational@gmail.com">business.awadhinternational@gmail.com</a>
+        <span>Instagram <span class="tba">To be added</span></span>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 MASAÉ · Awwadh International. All rights reserved.</span>
+    <nav aria-label="Legal">
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Service</a>
+      <a href="#">Refund Policy</a>
+    </nav>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="assets/js/masae.js"></script>
+<script>
+(function () {
+  if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
+  MASAE.reveals();
+  if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
+    document.querySelectorAll('.footer-border .draw').forEach(function (path) {
+      var len = path.getTotalLength();
+      gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len },
+        { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut', scrollTrigger: { trigger: '.site-footer', start: 'top 92%' } });
+    });
+  }
+})();
+</script>
+</body>
+</html>
