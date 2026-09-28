@@ -68,9 +68,10 @@
     text-shadow: 0 2px 24px rgba(60,30,20,.35);
   }
   .wordmark h1 { margin: 0; line-height: 0; }
-  .wordmark img { display: block; height: min(33vh, 300px); width: auto; margin: 0 auto;
+  .wordmark img { display: block; height: min(27vh, 250px); width: auto; margin: 0 auto;
   }
-  @media (max-width: 767px) { .wordmark { top: 4.5%; } .wordmark img { height: auto; width: min(50vw, 210px); } }
+  /* Phones: smaller again, so the logo sits clear of the palace in the scene below it */
+  @media (max-width: 767px) { .wordmark { top: 5%; } .wordmark img { height: auto; width: min(38vw, 160px); } }
 
   .scrim { position: absolute; inset: 0; pointer-events: none; opacity: 0;
     background: radial-gradient(ellipse 60% 42% at 50% 42%, rgba(48,26,18,.5) 0%, rgba(48,26,18,.16) 60%, rgba(48,26,18,0) 100%); }
