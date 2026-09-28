@@ -152,7 +152,9 @@
   .ritual-intro h3 { margin-top: 20px; font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(30px, 4vw, 54px); line-height: 1.15; color: var(--burgundy); }
   .ritual { position: relative; height: 300vh; background: #2a1d17; }
   .ritual-sticky { position: sticky; top: 0; height: 100vh; height: 100svh; overflow: hidden; }
-  .ritual-media, .ritual-media video, .ritual-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 50%; }
+  .ritual-media, .ritual-media canvas, .ritual-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 50%; }
+  .ritual-media canvas { opacity: 0; transition: opacity .4s ease; }
+  .ritual-media canvas.is-ready { opacity: 1; }
   .ritual-shade { position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(0deg, rgba(30,18,12,.86) 0%, rgba(30,18,12,.5) 18%, rgba(30,18,12,0) 38%); }
   .ritual-steps { position: absolute; left: 0; right: 0; bottom: clamp(58px, 9vh, 84px); height: 120px; }
@@ -292,9 +294,11 @@
   <section class="ritual" id="ritual" aria-label="How to burn MASAÉ incense">
     <div class="ritual-sticky">
       <div class="ritual-media">
-        <video id="ritualVideo" muted loop playsinline preload="metadata" poster="assets/ritual/royal-corner-poster.jpg" aria-hidden="true">
-          <source src="assets/ritual/royal-corner-loop.mp4" type="video/mp4">
-        </video>
+        <!-- The lighting is a frame sequence drawn on canvas, so it follows the scroll exactly -->
+        <img id="ritualPoster" src="assets/ritual/lighting/sm/frame-01.jpg"
+             srcset="assets/ritual/lighting/sm/frame-01.jpg 720w, assets/ritual/lighting/frame-01.jpg 1280w"
+             sizes="100vw" alt="A single incense stick being lit in a palace corner at dusk">
+        <canvas id="ritualCanvas" aria-hidden="true"></canvas>
       </div>
       <div class="ritual-shade"></div>
       <div class="ritual-steps">
@@ -595,21 +599,69 @@
     requestAnimationFrame(loop);
   }
 
-  /* ---------- The Art of Incense: play the film only while it is on screen ---------- */
-  var ritual = document.getElementById('ritual'), ritualVideo = document.getElementById('ritualVideo');
+  /* ---------- The Art of Incense: the stick lights as you scroll ----------
+     A frame sequence on canvas rather than a video: seeking a video per scroll frame
+     stutters (and is blocked on iOS until it has played), while drawing a decoded
+     image is instant, so the flame follows the scrollbar exactly. */
+  var ritual = document.getElementById('ritual');
   var stick = document.getElementById('stick'), steps = ritual.querySelectorAll('.step');
-  if (!reduceMotion) {
-    new IntersectionObserver(function (e) {
-      if (e[0].isIntersecting) { var pr = ritualVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }
-      else ritualVideo.pause();
-    }, { threshold: 0 }).observe(ritual);
-  } else {
-    steps.forEach(function (el) { el.classList.add('is-active'); });
+  var canvas = document.getElementById('ritualCanvas'), poster = document.getElementById('ritualPoster');
+  var ctx = canvas.getContext('2d');
+  var FRAMES = 48, frames = [], loaded = 0, drawn = -1, sized = false, lastP = 0;
+  // phones and tablets load the 720px set (1.9 MB) instead of the 1280px set (4.7 MB)
+  var FRAME_DIR = (window.innerWidth < 900 || isTouch) ? 'assets/ritual/lighting/sm/' : 'assets/ritual/lighting/';
+
+  function sizeRitualCanvas() {
+    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
+    var w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
+    if (!w || !h || (canvas.width === w && canvas.height === h)) return;
+    canvas.width = w; canvas.height = h; sized = true; drawn = -1;
   }
+  function drawFrame(i) {
+    var img = frames[i];
+    if (!img || !img.complete || !img.naturalWidth) return;
+    if (!sized) sizeRitualCanvas();
+    // cover, matching the CSS object-position of 60% 50%
+    var cw = canvas.width, ch = canvas.height, ir = img.naturalWidth / img.naturalHeight, cr = cw / ch;
+    var w = cr > ir ? cw : ch * ir, h = cr > ir ? cw / ir : ch;
+    ctx.drawImage(img, (cw - w) * 0.6, (ch - h) * 0.5, w, h);
+    drawn = i;
+  }
+  function loadFrames() {
+    if (frames.length) return;
+    for (var i = 0; i < FRAMES; i++) {
+      var img = new Image();
+      img.decoding = 'async';
+      // attach the handler before src, or a cached frame fires load before anyone is listening
+      img.onload = function () {
+        loaded++;
+        if (loaded === 1) { sizeRitualCanvas(); setRitual(lastP); canvas.classList.add('is-ready'); }
+      };
+      img.src = FRAME_DIR + 'frame-' + (i + 1 < 10 ? '0' : '') + (i + 1) + '.jpg';
+      frames.push(img);
+    }
+  }
+  function redrawRitual() { sized = false; sizeRitualCanvas(); drawn = -1; setRitual(lastP); }
+  window.addEventListener('resize', redrawRitual);
+  if (window.ResizeObserver) new ResizeObserver(redrawRitual).observe(canvas);
+
+  if (reduceMotion) {
+    steps.forEach(function (el) { el.classList.add('is-active'); });
+  } else {
+    // start fetching the frames a screen before the section arrives
+    new IntersectionObserver(function (e, obs) {
+      if (e[0].isIntersecting) { loadFrames(); obs.disconnect(); }
+    }, { rootMargin: '100% 0px' }).observe(ritual);
+  }
+
   function setRitual(p) {
+    lastP = p;
     stick.style.setProperty('--p', p.toFixed(3));
     var idx = Math.min(2, Math.floor(p * 3));
     steps.forEach(function (el, k) { el.classList.toggle('is-active', k === idx); });
+    // the flame catches over the first three quarters, then the smoke drifts on
+    var i = Math.round(gsap.utils.clamp(0, 1, p / 0.86) * (FRAMES - 1));
+    if (i !== drawn) drawFrame(i);
   }
   setRitual(0);
 
@@ -634,23 +686,21 @@
   apply();
   // ScrollTrigger is registered and configured in assets/js/masae.js
   var lenis = MASAE.lenis;   // shared smooth wheel scrolling (assets/js/masae.js)
-  var mm = gsap.matchMedia();
+  /* The hero is built directly rather than through gsap.matchMedia(), which defers its
+     callback. Deferring means the pinned hero — and the page height its pin adds — appears
+     after the sections below it have measured themselves, so their triggers land in the
+     wrong place. Building in page order keeps every start and end honest. */
+  var PORTRAIT = window.matchMedia('(max-aspect-ratio: 4/5)');
+  var heroTl = null, heroST = null;
 
-  mm.add({ desktop: '(min-aspect-ratio: 4/5)', mobile: '(max-aspect-ratio: 4/5)' }, function (ctx) {
-    var desktop = !ctx.conditions.mobile;
+  function buildHero() {
+    var desktop = !PORTRAIT.matches;
     layout();
-    if (!desktop) gsap.set('#fg', { display: 'none' });
+    gsap.set('#fg', desktop ? { clearProps: 'display' } : { display: 'none' });
     gsap.set(['#revealTitle', '#labels', '#cta'], { autoAlpha: 0, y: 24 });
     gsap.set('#packs .pack', { autoAlpha: 0, y: 70 });
 
-    var tl = gsap.timeline({
-      defaults: { ease: 'none' },
-      scrollTrigger: {
-        trigger: hero, start: 'top top', end: desktop ? '+=320%' : '+=260%',
-        scrub: lenis ? 0.5 : 0.9, pin: true, anticipatePin: 1, refreshPriority: -1,
-        onUpdate: function (self) { pinProgress = self.progress; updateHeader(); reveal.classList.toggle('is-live', self.progress > 0.8); }
-      }
-    });
+    var tl = heroTl = gsap.timeline({ defaults: { ease: 'none' }, paused: true });
 
     // 0.00 – 0.12  wordmark and scroll cue leave; the courtyard appears in the arch opening
     tl.to('#cue',      { autoAlpha: 0, duration: 0.04 }, 0)
@@ -676,23 +726,37 @@
     // 0.90 – 1.00  hold on the collection before the page moves on
       .to({}, { duration: 0.10 }, 0.90);
 
-    return function () {
-      state.t = 0; state.settle = 1.08; state.innerA = 0; fx.haze = 0; fx.petals = 1;
-      gsap.set('#fg', { clearProps: 'display' });
-    };
-  });
+    /* The trigger is created explicitly rather than through the timeline's scrollTrigger
+       shorthand: that shorthand is built on the next tick, so the pin (and the page height
+       it adds) would appear after the sections below had already measured themselves. */
+    heroST = ScrollTrigger.create({
+      animation: tl, trigger: hero, start: 'top top', end: desktop ? '+=320%' : '+=260%',
+      // refreshPriority 1: the pinned hero must refresh FIRST so the sections below it
+      // measure the page with its pin spacing (higher number = refreshed earlier)
+      scrub: lenis ? 0.5 : 0.9, pin: true, anticipatePin: 1, refreshPriority: 1,
+      onUpdate: function (self) { pinProgress = self.progress; updateHeader(); reveal.classList.toggle('is-live', self.progress > 0.8); }
+    });
+  }
 
+  function rebuildHero() {
+    if (heroST) heroST.kill(true);
+    if (heroTl) heroTl.kill();
+    state.t = 0; state.settle = 1.08; state.innerA = 0; fx.haze = 0; fx.petals = 1;
+    gsap.set(['#wordmark', '#cue', '#fg', '#brandline', '#scrim'], { clearProps: 'all' });
+    buildHero();
+    ScrollTrigger.refresh();
+  }
+
+  buildHero();
+
+  // Everything below the hero, created after it so it measures the page with the pin spacing
   // The ritual: three steps across the sticky section; the ember burns along the stick
   ScrollTrigger.create({ trigger: ritual, start: 'top top', end: 'bottom bottom',
     onUpdate: function (self) { setRitual(self.progress); } });
-  // Play the film whenever any part of the section is on screen (backs up the IntersectionObserver)
-  ScrollTrigger.create({ trigger: ritual, start: 'top bottom', end: 'bottom top',
-    onToggle: function (self) {
-      if (self.isActive) { var pr = ritualVideo.play(); if (pr && pr.catch) pr.catch(function () {}); }
-      else ritualVideo.pause();
-    } });
-
   MASAE.footerBorder();
+
+  // rebuild when the screen turns between landscape and portrait
+  if (PORTRAIT.addEventListener) PORTRAIT.addEventListener('change', rebuildHero);
 
   ScrollTrigger.addEventListener('refreshInit', layout);
 })();
