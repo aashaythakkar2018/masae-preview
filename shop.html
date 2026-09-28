@@ -256,15 +256,8 @@
 <script src="assets/js/masae.js"></script>
 <script>
 (function () {
-  if (window.gsap && window.ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
   MASAE.reveals();
-  if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
-    document.querySelectorAll('.footer-border .draw').forEach(function (path) {
-      var len = path.getTotalLength();
-      gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len },
-        { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut', scrollTrigger: { trigger: '.site-footer', start: 'top 92%' } });
-    });
-  }
+  MASAE.footerBorder();
 })();
 </script>
 </body>

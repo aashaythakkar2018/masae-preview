@@ -40,7 +40,7 @@
   .letter-sticky .wall { position: absolute; inset: 0; background: radial-gradient(ellipse 70% 60% at 50% 45%, #fbf5ea 0%, var(--ivory) 70%); }
   .letter-sticky .wall img { position: absolute; left: 50%; top: 50%; width: min(70vh, 620px); height: auto; transform: translate(-50%, -50%); opacity: .07; }
 
-  .letter { position: relative; width: min(720px, 100%); max-height: 100%; overflow: auto; background: #fbf6ec; border: 1px solid rgba(165,138,85,.5);
+  .letter { position: relative; will-change: transform; width: min(720px, 100%); max-height: 100%; overflow: auto; background: #fbf6ec; border: 1px solid rgba(165,138,85,.5);
     padding: clamp(26px, 4.4vw, 52px) clamp(20px, 4.4vw, 56px) clamp(28px, 4vw, 44px); box-shadow: 0 30px 60px rgba(70,40,20,.16); }
   .letter::before { content: ""; position: absolute; inset: 7px; border: 1px solid rgba(165,138,85,.3); pointer-events: none; }
   .letter .crest { display: block; width: 62px; height: auto; margin: 0 auto 14px; }
@@ -260,7 +260,6 @@
   /* ---------- The letter descends, then the fields arrive ---------- */
   var letter = document.getElementById('letter');
   if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
-    gsap.registerPlugin(ScrollTrigger);
     var rows = letter.querySelectorAll('.crest, h2, .lede, .field, .letter-actions');
     gsap.set(letter, { yPercent: -115, opacity: 0 });
     gsap.set(rows, { autoAlpha: 0, y: 18 });
@@ -273,14 +272,11 @@
       .to(rows,   { autoAlpha: 1, y: 0, duration: 0.30, stagger: 0.05, ease: 'power2.out' }, 0.38);
 
     MASAE.reveals();
-    document.querySelectorAll('.footer-border .draw').forEach(function (path) {
-      var len = path.getTotalLength();
-      gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len },
-        { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut', scrollTrigger: { trigger: '.site-footer', start: 'top 92%' } });
-    });
+    MASAE.footerBorder();
   } else {
     MASAE.reveals();
   }
+
 
   /* ---------- The form: check the entries, then hand the message to WhatsApp ---------- */
   var WHATSAPP = '919170663334';

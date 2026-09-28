@@ -5,6 +5,12 @@ window.MASAE = (function () {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var isTouch = window.matchMedia('(pointer: coarse)').matches;
 
+  // Register once, before anything touches ScrollTrigger (GSAP requirement)
+  if (window.gsap && window.ScrollTrigger) {
+    gsap.registerPlugin(ScrollTrigger);
+    ScrollTrigger.config({ ignoreMobileResize: true });
+  }
+
   /* ---------- Phone & tablet menu ---------- */
   var menuBtn = document.getElementById('menuBtn');
   var mobileMenu = document.getElementById('mobileMenu');
@@ -112,20 +118,52 @@ window.MASAE = (function () {
     requestAnimationFrame(loop);
   }
 
-  /* ---------- Reveal on scroll: [data-reveal] elements rise into place ---------- */
+  /* ---------- Reveal on scroll ----------
+     ScrollTrigger.batch() groups everything that enters together into one staggered
+     animation, instead of creating a separate trigger per element. */
   function reveals() {
     var els = document.querySelectorAll('[data-reveal]');
     if (!els.length) return;
     if (reduceMotion || !window.gsap || !window.ScrollTrigger) {
+      gsap.set && gsap.set(els, { clearProps: 'all' });
       els.forEach(function (el) { el.style.opacity = 1; el.style.transform = 'none'; });
       return;
     }
-    els.forEach(function (el) {
-      gsap.fromTo(el, { autoAlpha: 0, y: 26 },
-        { autoAlpha: 1, y: 0, duration: 1.1, ease: 'power2.out', delay: parseFloat(el.dataset.reveal) || 0,
-          scrollTrigger: { trigger: el, start: 'top 88%' } });
+    gsap.set(els, { autoAlpha: 0, y: 26 });
+    ScrollTrigger.batch(els, {
+      start: 'top 88%',
+      once: true,
+      onEnter: function (batch) {
+        gsap.to(batch, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'power2.out', stagger: 0.08, overwrite: true });
+      }
     });
   }
 
-  return { reduceMotion: reduceMotion, isTouch: isTouch, lenis: lenis, petals: petals, reveals: reveals, updateHeader: updateHeader };
+  /* ---------- The footer's botanical border draws itself in ---------- */
+  function footerBorder() {
+    var paths = document.querySelectorAll('.footer-border .draw');
+    if (!paths.length || reduceMotion || !window.gsap || !window.ScrollTrigger) return;
+    paths.forEach(function (path) {
+      var len = path.getTotalLength();
+      gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len },
+        { strokeDashoffset: 0, duration: 2.2, ease: 'power2.inOut',
+          scrollTrigger: { trigger: '.site-footer', start: 'top 92%', once: true } });
+    });
+  }
+
+  /* ---------- Recalculate trigger positions once the page has really settled ----------
+     Images and web fonts change the layout after load, which moves every start/end. */
+  function refreshWhenSettled() {
+    if (!window.ScrollTrigger) return;
+    var refresh = function () { ScrollTrigger.refresh(); };
+    window.addEventListener('load', refresh);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+    document.querySelectorAll('img').forEach(function (img) {
+      if (!img.complete) img.addEventListener('load', refresh, { once: true });
+    });
+  }
+  refreshWhenSettled();
+
+  return { reduceMotion: reduceMotion, isTouch: isTouch, lenis: lenis, petals: petals,
+           reveals: reveals, footerBorder: footerBorder, updateHeader: updateHeader };
 })();
