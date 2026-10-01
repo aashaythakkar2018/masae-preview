@@ -42,7 +42,8 @@ window.MASAE = (function () {
 
   /* ---------- Smooth wheel scrolling (desktop pointers only) ---------- */
   if (window.Lenis && !isTouch && !reduceMotion) {
-    lenis = new Lenis({ duration: 1.15, easing: function (x) { return 1 - Math.pow(1 - x, 3.2); }, smoothWheel: true });
+    // lerp follows the wheel frame by frame; a long duration made scroll-linked scenes feel laggy
+    lenis = new Lenis({ lerp: 0.12, wheelMultiplier: 1, smoothWheel: true, syncTouch: false });
     if (window.ScrollTrigger) lenis.on('scroll', ScrollTrigger.update);
     if (window.gsap) {
       gsap.ticker.add(function (time) { lenis.raf(time * 1000); });

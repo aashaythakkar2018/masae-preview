@@ -472,7 +472,7 @@
   var innerImg = inner.querySelector('.inner-photo img');
   // The bitmap always matches the canvas's own on-screen box, both axes, so nothing is left undrawn or stretched
   function sizeBgCanvas() {
-    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.25 : 1.5);
     var cw = bgCanvas.clientWidth || hero.clientWidth, ch = bgCanvas.clientHeight || hero.clientHeight;
     var bw = Math.max(1, Math.round(cw * dpr)), bh = Math.max(1, Math.round(ch * dpr));
     if (bgCanvas.width !== bw) bgCanvas.width = bw;
@@ -499,7 +499,20 @@
     bgCtx.lineTo(x + 100 * u, y + h);
     bgCtx.closePath();
   }
-  function apply() {
+  /* Several tweens change the scene at once. They only mark it dirty; the actual
+     canvas work happens once per frame on GSAP's ticker, so a frame is never drawn
+     two or three times over. */
+  var dirty = true, lastKey = '';
+  function apply() { dirty = true; }
+  function renderScene() {
+    if (!canvasMode || !dirty) return;
+    dirty = false;
+    var key = state.t.toFixed(4) + '|' + state.settle.toFixed(3) + '|' + state.innerA.toFixed(3) + '|' + geo.vw + 'x' + geo.vh;
+    if (key === lastKey) return;
+    lastKey = key;
+    drawScene();
+  }
+  function drawScene() {
     if (!canvasMode) return;
     var Z = geo.Z, S = Math.exp(state.t * Math.log(Z));      // garden zoom 1 → Z at constant perceived speed
     var w = geo.ow * S, h = geo.oh * S, ax = geo.cx - w / 2, ay = geo.cy - h / 2;
@@ -683,7 +696,7 @@
   canvasMode = true;
   document.documentElement.classList.add('js-canvas');
   sizeBgCanvas();
-  function onHeroResize() { layout(); sizeBgCanvas(); apply(); }
+  function onHeroResize() { lastKey = ''; layout(); sizeBgCanvas(); apply(); renderScene(); }
   window.addEventListener('resize', onHeroResize);
   if (window.ResizeObserver) new ResizeObserver(onHeroResize).observe(hero);
   // redraw when a photo arrives (the <picture> may also swap between wide and tall on rotate)
@@ -738,7 +751,7 @@
       animation: tl, trigger: hero, start: 'top top', end: desktop ? '+=320%' : '+=260%',
       // refreshPriority 1: the pinned hero must refresh FIRST so the sections below it
       // measure the page with its pin spacing (higher number = refreshed earlier)
-      scrub: lenis ? 0.5 : 0.9, pin: true, anticipatePin: 1, refreshPriority: 1,
+      scrub: lenis ? 0.3 : 0.6, pin: true, anticipatePin: 1, refreshPriority: 1,
       onUpdate: function (self) { pinProgress = self.progress; updateHeader(); reveal.classList.toggle('is-live', self.progress > 0.8); }
     });
   }
@@ -772,7 +785,8 @@
   // rebuild when the screen turns between landscape and portrait
   if (PORTRAIT.addEventListener) PORTRAIT.addEventListener('change', rebuildHero);
 
-  ScrollTrigger.addEventListener('refreshInit', layout);
+  gsap.ticker.add(renderScene);
+  ScrollTrigger.addEventListener('refreshInit', function () { lastKey = ''; layout(); });
 })();
 </script>
 </body>
