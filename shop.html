@@ -24,8 +24,10 @@
   @media (max-width: 620px)  { .listings { grid-template-columns: 1fr; max-width: 420px; } }
 
   .card { display: flex; flex-direction: column; }
-  .card-media { position: relative; aspect-ratio: 2 / 3; overflow: hidden; background: linear-gradient(170deg, #fbf5ea 0%, #efe3d2 100%); }
-  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(20px, 3vw, 40px) 0;
+  .card-media { position: relative; aspect-ratio: 2 / 3; overflow: hidden; border: 1px solid rgba(165,138,85,.32);
+    background: linear-gradient(170deg, #fbf5ea 0%, #efe3d2 100%); }
+  /* every pack sits on an identical canvas, so one padding renders them all at the same size */
+  .card-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: clamp(22px, 3.2vw, 42px) clamp(16px, 2vw, 28px);
     transition: opacity .8s ease, transform 1.1s cubic-bezier(.2,.7,.2,1); }
   .card-media .back { opacity: 0; }
   .card:hover .card-media .front, .card:focus-within .card-media .front { opacity: 0; transform: translateY(-6px); }
@@ -35,19 +37,22 @@
   .card:hover .flip-hint { opacity: 1; }
   @media (hover: none) { .card-media .flip-hint { display: none; } }
 
+  .card { height: 100%; }
   .card-body { padding-top: 20px; display: flex; flex-direction: column; flex: 1; }
   .card h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(24px, 2.4vw, 32px); line-height: 1.15; color: var(--burgundy); }
   .card .notes { margin-top: 6px; font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--sage); }
-  .card .story { margin-top: 12px; font-size: 14px; line-height: 1.75; color: var(--muted); }
-  .card .spec { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
-    padding-top: 14px; border-top: 1px solid rgba(165,138,85,.35); }
+  .card .story { margin-top: 12px; margin-bottom: 20px; font-size: 14px; line-height: 1.75; color: var(--muted); }
+  /* margin-top:auto pushes price and button down, so they line up across every card */
+  .card .spec { margin-top: auto; padding-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px;
+    min-height: 62px; border-top: 1px solid rgba(165,138,85,.35); }   /* one height for every price row, so the rules line up */
+  .card .spec > * { padding-top: 14px; }
   .card .price { font-family: var(--serif); font-size: 24px; color: var(--ink); }
   .card .pack { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .card .actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
   .card .soon { font-size: 12px; color: var(--muted); }
 
-  .card-set .card-media { background: linear-gradient(170deg, #f7efe1 0%, #e8dac6 100%); }
-  .card-set .slot { position: absolute; inset: clamp(16px, 2.4vw, 28px); border: 1px dashed var(--gold);
+  .card-set .card-media { background: linear-gradient(170deg, #fbf5ea 0%, #efe3d2 100%); }
+  .card-set .slot { position: absolute; inset: clamp(22px, 3.2vw, 42px) clamp(16px, 2vw, 28px); border: 1px dashed var(--gold);
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 18px; }
   .card-set .slot .label { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
   .card-set .slot .desc { font-family: var(--serif); font-size: 19px; line-height: 1.35; color: var(--burgundy); }
@@ -167,7 +172,7 @@
         <h2>Discovery Set</h2>
         <p class="notes">Oud &amp; Amber · Tuberose · Blanc Santal · Velvet Rose</p>
         <p class="story">The whole garden in one box: every fragrance in the collection, made for gifting and for finding your own.</p>
-        <div class="spec"><span class="price">Price<span class="tba">To be added</span></span><span class="pack">Contents to be confirmed</span></div>
+        <div class="spec"><span class="price">Price<span class="tba">To be added</span></span><span class="pack">4 fragrances</span></div>
         <div class="actions">
           <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20ask%20about%20the%20MASA%C3%89%20Discovery%20Set." target="_blank" rel="noopener">Ask on WhatsApp</a>
         </div>
