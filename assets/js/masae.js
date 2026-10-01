@@ -93,14 +93,21 @@ window.MASAE = (function () {
       return { x: Math.random() * w * 1.1 - w * 0.1, y: anywhere ? Math.random() * h : -20,
         r: 5 + Math.random() * 7, vx: 0.15 + Math.random() * 0.35, vy: 0.25 + Math.random() * 0.45,
         rot: Math.random() * Math.PI * 2, vr: (Math.random() - 0.5) * 0.02, wob: Math.random() * Math.PI * 2,
-        color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)], a: 0.5 + Math.random() * 0.35 };
+        color: PETAL_COLORS[Math.floor(Math.random() * PETAL_COLORS.length)], a: 0.5 + Math.random() * 0.35,
+        depth: 0.5 + Math.random() * 0.9 };   // nearer petals answer the scroll more
     }
+    var lastScroll = window.scrollY, drift = 0;
     function draw() {
       var w = canvas.clientWidth, h = canvas.clientHeight;
+      // how far the page moved since the last frame, used to push the petals along
+      var now = window.scrollY, delta = now - lastScroll;
+      lastScroll = now;
+      drift = drift * 0.86 + delta * (opts.scrollDrift || 0);
       ctx.clearRect(0, 0, w, h);
       list.forEach(function (p, i) {
-        p.wob += 0.012; p.rot += p.vr; p.x += p.vx + Math.sin(p.wob) * 0.35; p.y += p.vy;
-        if (p.y > h + 20 || p.x > w + 20) list[i] = make(false);
+        p.wob += 0.012; p.rot += p.vr; p.x += p.vx + Math.sin(p.wob) * 0.35; p.y += p.vy + drift * p.depth;
+        if (p.y > h + 30 || p.x > w + 30) list[i] = make(false);
+        else if (p.y < -60) { p.y = h + 20; p.x = Math.random() * w; }
         ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
         ctx.globalAlpha = p.a * alpha; ctx.fillStyle = p.color;
         ctx.beginPath(); ctx.moveTo(0, -p.r);

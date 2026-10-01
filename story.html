@@ -44,6 +44,28 @@
   .center { text-align: center; }
   .rule { display: block; width: 1px; height: clamp(40px, 7vh, 72px); margin: clamp(40px, 7vh, 72px) auto; background: linear-gradient(var(--gold), transparent); transform-origin: top; }
 
+  /* Quiet background: the logo's own motifs drifting behind the text */
+  .story-body { position: relative; }
+  .story-decor { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .story-decor .motif { position: absolute; color: var(--gold); opacity: .085; will-change: transform; }
+  .story-decor .motif.sage { color: var(--sage); opacity: .1; }
+  .story-decor .m1 { top: 6%;  left: -70px;  width: clamp(180px, 22vw, 320px); }
+  .story-decor .m2 { top: 24%; right: -60px; width: clamp(150px, 18vw, 260px); }
+  .story-decor .m3 { top: 47%; left: -40px;  width: clamp(130px, 15vw, 220px); }
+  .story-decor .m4 { top: 66%; right: -80px; width: clamp(190px, 24vw, 340px); }
+  .story-decor .m5 { top: 86%; left: 4%;     width: clamp(110px, 12vw, 170px); }
+  .story-decor .sway { animation: decorSway 16s ease-in-out infinite alternate; transform-origin: 50% 100%; }
+  .story-decor .sway.slow { animation-duration: 22s; animation-direction: alternate-reverse; }
+  @keyframes decorSway { from { transform: rotate(-1.4deg); } to { transform: rotate(1.4deg); } }
+  /* sticky and viewport-sized: one screen of canvas instead of one page of it */
+  .story-petals { position: sticky; top: 0; display: block; width: 100%; height: 100vh; margin-bottom: -100vh;
+    pointer-events: none; z-index: 0; }
+  .story-body > section, .story-body > figure { position: relative; z-index: 1; }
+  @media (max-width: 760px) {
+    .story-decor .m2, .story-decor .m4 { display: none; }   /* keep phones light */
+  }
+  @media (prefers-reduced-motion: reduce) { .story-decor .sway { animation: none; } }
+
   /* Full-bleed bands: image moves slower than the page as it passes */
   .band { position: relative; height: clamp(300px, 46vh, 520px); overflow: hidden; background: #2a1d17; }
   .band img { position: absolute; left: 0; width: 100%; height: 132%; top: -16%; object-fit: cover; will-change: transform; }
@@ -140,6 +162,43 @@
       <h1>Born from Fragrance.<br>Made in India.<br>Created for the World.</h1>
     </div>
   </section>
+
+  <div class="story-body">
+    <div class="story-decor" aria-hidden="true">
+      <!-- the arch from the logo -->
+      <svg class="motif m1 sway" data-drift="-9" viewBox="0 0 100 170" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M4 170V62C4 32 30 14 50 2C70 14 96 32 96 62V170"/>
+        <path d="M16 170V66C16 42 34 26 50 16C66 26 84 42 84 66V170"/>
+        <path d="M50 2V-6"/><path d="M44 -6h12"/>
+      </svg>
+      <!-- a tuberose sprig -->
+      <svg class="motif m2 sage sway slow" data-drift="14" viewBox="0 0 120 200" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M60 200V40"/>
+        <path d="M60 150c-22-6-34-22-38-44c22 2 34 18 38 44z"/>
+        <path d="M60 120c22-6 34-22 38-44c-22 2-34 18-38 44z"/>
+        <path d="M60 86c-18-6-28-20-31-38c18 2 28 16 31 38z"/>
+        <ellipse cx="60" cy="30" rx="9" ry="16"/><ellipse cx="60" cy="30" rx="3" ry="8"/>
+      </svg>
+      <!-- the quatrefoil divider mark -->
+      <svg class="motif m3 sway" data-drift="-16" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M50 8c8 14 8 28 0 42c-8-14-8-28 0-42z"/><path d="M50 92c-8-14-8-28 0-42c8 14 8 28 0 42z"/>
+        <path d="M8 50c14-8 28-8 42 0c-14 8-28 8-42 0z"/><path d="M92 50c-14 8-28 8-42 0c14-8 28-8 42 0z"/>
+        <circle cx="50" cy="50" r="3"/>
+      </svg>
+      <!-- a leafed branch -->
+      <svg class="motif m4 sage sway" data-drift="11" viewBox="0 0 160 120" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M4 112C40 96 92 72 156 16"/>
+        <path d="M44 92c2-16 12-28 28-32c-2 16-12 28-28 32z"/>
+        <path d="M78 70c2-16 12-28 28-32c-2 16-12 28-28 32z"/>
+        <path d="M110 48c2-16 12-28 28-32c-2 16-12 28-28 32z"/>
+        <path d="M30 100c-14-4-22-14-24-28c14 4 22 14 24 28z"/>
+      </svg>
+      <!-- a thread of smoke -->
+      <svg class="motif m5 sway slow" data-drift="-12" viewBox="0 0 60 180" fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M30 180c0-30 16-40 16-62S30 86 30 64s16-28 16-44S30 0 30 0"/>
+      </svg>
+    </div>
+    <canvas class="story-petals" id="bodyPetals" aria-hidden="true"></canvas>
 
   <!-- The story -->
   <section class="chapter" aria-labelledby="storyTitle">
@@ -317,6 +376,8 @@
     </div>
   </section>
 
+  </div><!-- /.story-body -->
+
   <!-- Closing -->
   <section class="closing">
     <img class="crest" src="assets/brand/emblem.webp" alt="" width="790" height="749" loading="lazy">
@@ -401,6 +462,8 @@
 <script>
 (function () {
   MASAE.petals(document.getElementById('petals'), { alpha: 0.8, count: 10 });
+  // petals behind the chapters: they drift on their own, and the scroll pushes them along
+  MASAE.petals(document.getElementById('bodyPetals'), { alpha: 0.42, count: 12, scrollDrift: 0.12 });
   MASAE.reveals();
 
   if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
@@ -413,6 +476,15 @@
         scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.5 : 0.9 }
       });
     });
+    // background motifs travel at their own speeds as the page moves
+    document.querySelectorAll('.story-decor .motif').forEach(function (motif) {
+      var drift = parseFloat(motif.dataset.drift) || 8;
+      gsap.fromTo(motif, { yPercent: -drift * 3 }, {
+        yPercent: drift * 3, ease: 'none',
+        scrollTrigger: { trigger: '.story-body', start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.6 : 1 }
+      });
+    });
+
     document.querySelectorAll('.rule').forEach(function (rule) {
       gsap.fromTo(rule, { scaleY: 0 }, {
         scaleY: 1, ease: 'none',
