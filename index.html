@@ -145,6 +145,9 @@
   .statement h3 { margin: 24px auto 0; max-width: 860px; font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.6vw, 48px); line-height: 1.2; color: var(--burgundy); }
   .ornament { display: block; width: 120px; height: 24px; margin: 40px auto 0; color: var(--gold); }
   .emblem { display: block; width: clamp(84px, 9vw, 116px); height: auto; margin: 0 auto 30px; }
+  /* Same thin gold rule as the story page; it draws downward on scroll */
+  .rule { display: block; width: 1px; height: clamp(40px, 7vh, 72px); margin: clamp(40px, 7vh, 72px) auto 0; transform-origin: top;
+    background: linear-gradient(var(--gold), transparent); }
   .statement .placeholder-note { margin-top: 72px; }
 
   /* ---------- The Art of Incense: the ritual ---------- */
@@ -282,15 +285,16 @@
   </section>
 
   <section class="statement">
-    <img class="emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749" loading="lazy">
-    <p class="kicker">The House of MASAÉ</p>
-    <h3>A contemporary Indian fragrance brand built around the art, atmosphere and heritage of incense.</h3>
+    <img class="emblem" src="assets/brand/emblem.webp" alt="" width="790" height="749" loading="lazy" data-reveal="0">
+    <p class="kicker" data-reveal="0.04">The House of MASAÉ</p>
+    <h3 data-reveal="0.08">A contemporary Indian fragrance brand built around the art, atmosphere and heritage of incense.</h3>
+    <span class="rule" aria-hidden="true"></span>
   </section>
 
   <!-- THE ART OF INCENSE: a royal corner, one stick burning (looping film), three steps revealed by scroll -->
   <section class="ritual-intro" aria-labelledby="ritualTitle">
-    <p class="kicker">The Art of Incense</p>
-    <h3 id="ritualTitle">A ritual of quiet luxury.</h3>
+    <p class="kicker" data-reveal="0">The Art of Incense</p>
+    <h3 id="ritualTitle" data-reveal="0.05">A ritual of quiet luxury.</h3>
   </section>
   <section class="ritual" id="ritual" aria-label="How to burn MASAÉ incense">
     <div class="ritual-sticky">
@@ -754,7 +758,16 @@
   // The ritual: three steps across the sticky section; the ember burns along the stick
   ScrollTrigger.create({ trigger: ritual, start: 'top top', end: 'bottom bottom',
     onUpdate: function (self) { setRitual(self.progress); } });
+  MASAE.reveals();
   MASAE.footerBorder();
+
+  // the gold rule draws downward as you reach it, the same motion as on Our Story
+  document.querySelectorAll('.rule').forEach(function (rule) {
+    gsap.fromTo(rule, { scaleY: 0 }, {
+      scaleY: 1, ease: 'none',
+      scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: 0.6 }
+    });
+  });
 
   // rebuild when the screen turns between landscape and portrait
   if (PORTRAIT.addEventListener) PORTRAIT.addEventListener('change', rebuildHero);
