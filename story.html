@@ -35,6 +35,10 @@
   /* ---------- Shared rhythm ---------- */
   .chapter { padding: clamp(68px, 11vh, 130px) clamp(16px, 6vw, 80px); }
   .chapter + .chapter { padding-top: 0; }
+  /* a band with its own background needs real space above and below, and room
+     between it and the chapter it follows */
+  .chapter + .chapter.collection-band { padding-top: clamp(68px, 11vh, 130px); margin-top: clamp(56px, 9vh, 110px); }
+  .collection-band + .chapter { padding-top: clamp(68px, 11vh, 130px); }
   .wrap { max-width: 760px; margin: 0 auto; }
   .wrap-wide { max-width: 1080px; margin: 0 auto; }
   .chapter h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.8vw, 50px); line-height: 1.15; color: var(--burgundy); }
@@ -103,7 +107,7 @@
   @media (max-width: 460px) { .tenets { grid-template-columns: 1fr; } }
 
   /* Collection */
-  .collection-band { background: #f7efe3; }
+  .collection-band { background: #f7efe3; padding-bottom: clamp(74px, 12vh, 140px); }
   .scents { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(28px, 4vw, 56px); margin-top: clamp(36px, 6vh, 56px); }
   @media (max-width: 720px) { .scents { grid-template-columns: 1fr; } }
   .scent { display: grid; grid-template-columns: clamp(88px, 11vw, 124px) 1fr; gap: clamp(18px, 2.4vw, 30px); align-items: start; }
