@@ -60,7 +60,8 @@
   .story-decor .m5 { top: 86%; left: 4%;     width: clamp(110px, 12vw, 170px); }
   .story-decor .sway { animation: decorSway 16s ease-in-out infinite alternate; transform-origin: 50% 100%; }
   .story-decor .sway.slow { animation-duration: 22s; animation-direction: alternate-reverse; }
-  @keyframes decorSway { from { transform: rotate(-1.4deg); } to { transform: rotate(1.4deg); } }
+  /* `rotate` is its own property, so it never fights the scroll drift that animates `transform` */
+  @keyframes decorSway { from { rotate: -1.4deg; } to { rotate: 1.4deg; } }
   /* sticky and viewport-sized: one screen of canvas instead of one page of it */
   .story-petals { position: sticky; top: 0; display: block; width: 100%; height: 100vh; margin-bottom: -100vh;
     pointer-events: none; z-index: 0; }
@@ -462,6 +463,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/motion@14.0.0/dist/motion.js"></script>
 <script src="assets/js/masae.js"></script>
 <script>
 (function () {
@@ -470,36 +472,48 @@
   MASAE.petals(document.getElementById('bodyPetals'), { alpha: 0.42, count: 12, scrollDrift: 0.12 });
   MASAE.reveals();
 
-  if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
-    /* Same restrained motion as the rest of the site: images drift slower than the page,
-       and the thin gold rules draw downward as you reach them. */
+  if (!MASAE.reduceMotion && window.Motion) {
+    /* Motion (the plain-JavaScript build of Framer Motion). Its scroll() hands the effect to
+       the browser's native scroll timeline where supported, so it runs off the main thread
+       and keeps gliding even when the page is busy. Pinned scenes stay on GSAP. */
+    var M = window.Motion, sc = M.scroll, an = M.animate;
+    var EASE = { ease: 'linear' };
+
     document.querySelectorAll('[data-parallax]').forEach(function (box) {
       var img = box.querySelector('img'), amount = parseFloat(box.dataset.parallax) || 8;
-      gsap.fromTo(img, { yPercent: -amount }, {
-        yPercent: amount, ease: 'none',
-        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.5 : 0.9 }
-      });
+      sc(an(img, { y: [-amount + '%', amount + '%'] }, EASE), { target: box, offset: ['start end', 'end start'] });
     });
     // background motifs travel at their own speeds as the page moves
     document.querySelectorAll('.story-decor .motif').forEach(function (motif) {
-      var drift = parseFloat(motif.dataset.drift) || 8;
-      gsap.fromTo(motif, { yPercent: -drift * 3 }, {
-        yPercent: drift * 3, ease: 'none',
-        scrollTrigger: { trigger: '.story-body', start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.6 : 1 }
-      });
+      var drift = (parseFloat(motif.dataset.drift) || 8) * 3;
+      sc(an(motif, { y: [-drift + '%', drift + '%'] }, EASE), { target: document.querySelector('.story-body'), offset: ['start end', 'end start'] });
     });
-
+    // the thin gold rules draw downward as you reach them
     document.querySelectorAll('.rule').forEach(function (rule) {
-      gsap.fromTo(rule, { scaleY: 0 }, {
-        scaleY: 1, ease: 'none',
-        scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: 0.6 }
-      });
+      sc(an(rule, { scaleY: [0, 1] }, EASE), { target: rule, offset: ['start 0.92', 'end 0.6'] });
     });
     // the banner settles slowly as the page moves away from it
-    gsap.to('.story-banner picture', {
-      yPercent: 9, ease: 'none',
-      scrollTrigger: { trigger: '.story-banner', start: 'top top', end: 'bottom top', scrub: 0.6 }
+    sc(an(document.querySelector('.story-banner picture'), { y: ['0%', '9%'] }, EASE),
+       { target: document.querySelector('.story-banner'), offset: ['start start', 'end start'] });
+
+  } else if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
+    // fallback if the Motion script could not load: the same effects on GSAP
+    document.querySelectorAll('[data-parallax]').forEach(function (box) {
+      var img = box.querySelector('img'), amount = parseFloat(box.dataset.parallax) || 8;
+      gsap.fromTo(img, { yPercent: -amount }, { yPercent: amount, ease: 'none',
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.5 : 0.9 } });
     });
+    document.querySelectorAll('.story-decor .motif').forEach(function (motif) {
+      var drift = parseFloat(motif.dataset.drift) || 8;
+      gsap.fromTo(motif, { yPercent: -drift * 3 }, { yPercent: drift * 3, ease: 'none',
+        scrollTrigger: { trigger: '.story-body', start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.6 : 1 } });
+    });
+    document.querySelectorAll('.rule').forEach(function (rule) {
+      gsap.fromTo(rule, { scaleY: 0 }, { scaleY: 1, ease: 'none',
+        scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: 0.6 } });
+    });
+    gsap.to('.story-banner picture', { yPercent: 9, ease: 'none',
+      scrollTrigger: { trigger: '.story-banner', start: 'top top', end: 'bottom top', scrub: 0.6 } });
   }
 
   MASAE.footerBorder();
