@@ -132,3 +132,10 @@ img { max-width: 100%; }
 .sound-btn:hover .sound-tip, .sound-btn:focus-visible .sound-tip { opacity: 1; }
 @media (hover: none) { .sound-tip { display: none; } }
 .menu-open .sound-btn { display: none; }
+
+/* a soft ring while sound is wanted but waiting for the first click */
+.sound-btn::after { content: ""; position: absolute; inset: -1px; border-radius: 50%; border: 1px solid rgba(165,138,85,.7); opacity: 0; pointer-events: none; }
+.sound-btn.is-waiting::after { animation: soundRing 2.6s ease-out infinite; }
+@keyframes soundRing { 0% { transform: scale(1); opacity: .75; } 100% { transform: scale(1.7); opacity: 0; } }
+.sound-btn.show-tip .sound-tip { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .sound-btn.is-waiting::after { animation: none; opacity: .5; } }

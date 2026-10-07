@@ -199,7 +199,7 @@ window.MASAE = (function () {
   var wantSound = read(KEY_PREF) !== 'off';   // sound is on unless the visitor muted it
   var audio = new Audio();
   audio.src = SRC; audio.loop = true; audio.preload = 'none'; audio.volume = 0;
-  var fadeTimer = null, started = false;
+  var fadeTimer = null, started = false, silent = false, starting = false;   // silent: already playing, muted, waiting for the first interaction
 
   /* ---------- the button ---------- */
   var btn = document.createElement('button');
@@ -213,12 +213,13 @@ window.MASAE = (function () {
   document.body.appendChild(btn);
 
   function paint() {
-    var on = wantSound && started && !audio.paused;
+    var on = wantSound && started && !audio.paused && !silent;
     btn.classList.toggle('is-muted', !on);
+    btn.classList.toggle('is-waiting', wantSound && !on);   // gentle pulse: one click away from sound
     btn.setAttribute('aria-pressed', on ? 'true' : 'false');
     var label = on ? 'Mute background music' : (wantSound ? 'Play background music' : 'Unmute background music');
     btn.setAttribute('aria-label', label);
-    btn.querySelector('.sound-tip').textContent = on ? 'Sound on' : (wantSound ? 'Tap to play' : 'Sound off');
+    btn.querySelector('.sound-tip').textContent = on ? 'Sound on' : (wantSound ? 'Click anywhere for sound' : 'Sound off');
   }
 
   /* ---------- fading (timers, not rAF, so it also works in background tabs) ---------- */
@@ -231,23 +232,33 @@ window.MASAE = (function () {
     }, 40);
   }
   function start() {
-    if (!wantSound || document.hidden) return Promise.resolve(false);
+    if (!wantSound || document.hidden || starting) return Promise.resolve(false);
+    starting = true;
     audio.preload = 'auto';
     var saved = parseFloat(sread(KEY_TIME));
-    if (!started && saved > 0) {
-      var seek = function () { try { audio.currentTime = saved % (audio.duration || 1e9); } catch (e) {} };
+    if (!started && !silent && saved > 0) {
+      var seek = function () { try { if (audio.currentTime < 1) audio.currentTime = saved % (audio.duration || 1e9); } catch (e) {} };
       if (audio.readyState >= 1) seek(); else audio.addEventListener('loadedmetadata', seek, { once: true });
     }
+    audio.muted = false;
     var p = audio.play();
     return (p && p.then ? p : Promise.resolve()).then(function () {
-      started = true; fadeTo(TARGET, 1800); paint(); return true;
-    }).catch(function () { paint(); return false; });   // blocked until the visitor interacts
+      started = true; silent = false; starting = false; fadeTo(TARGET, 1800); paint(); return true;
+    }).catch(function () {
+      // Blocked until the visitor interacts: keep the music running silently so it is already
+      // playing the moment they first click, tap or press a key, then fade the sound in.
+      audio.muted = true;
+      var q = audio.play();
+      return (q && q.then ? q : Promise.resolve()).then(function () {
+        silent = true; starting = false; paint(); return false;
+      }).catch(function () { starting = false; paint(); return false; });
+    });
   }
-  function stop() { fadeTo(0, 500, function () { audio.pause(); paint(); }); }
+  function stop() { silent = false; fadeTo(0, 500, function () { audio.pause(); audio.muted = false; paint(); }); }
 
   /* ---------- the visitor's controls ---------- */
   btn.addEventListener('click', function () {
-    if (wantSound && started && !audio.paused) { wantSound = false; write(KEY_PREF, 'off'); stop(); }
+    if (wantSound && started && !audio.paused && !silent) { wantSound = false; write(KEY_PREF, 'off'); stop(); }
     else { wantSound = true; write(KEY_PREF, 'on'); start(); }
     paint();
   });
@@ -258,7 +269,7 @@ window.MASAE = (function () {
     if (!started) start();
     if (started || !wantSound) removeGestureListeners();
   }
-  var EVENTS = ['pointerdown', 'keydown', 'touchend'];
+  var EVENTS = ['pointerdown', 'mousedown', 'click', 'keydown', 'touchend'];
   function removeGestureListeners() { EVENTS.forEach(function (t) { document.removeEventListener(t, firstGesture, true); }); }
   EVENTS.forEach(function (t) { document.addEventListener(t, firstGesture, true); });
 
@@ -268,9 +279,13 @@ window.MASAE = (function () {
   window.addEventListener('pagehide', remember);
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { remember(); if (started && !audio.paused) { audio.pause(); } }
-    else if (wantSound && started) { start(); }
+    else if (wantSound && (started || silent)) { start(); }
   });
 
   paint();
-  start();   // works straight away if the browser already allows audio for this site
+  start().then(function (audible) {
+    if (!audible && wantSound) {                       // hint for desktop visitors, then it quietly retires
+      btn.classList.add('show-tip'); setTimeout(function () { btn.classList.remove('show-tip'); }, 7000);
+    }
+  });   // plays straight away if the browser already allows sound for this site
 })();
