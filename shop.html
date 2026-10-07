@@ -51,12 +51,17 @@
   .card .actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
   .card .soon { font-size: 12px; color: var(--muted); }
 
-  .card-set .card-media { background: linear-gradient(170deg, #fbf5ea 0%, #efe3d2 100%); }
-  .card-set .slot { position: absolute; inset: clamp(22px, 3.2vw, 42px) clamp(16px, 2vw, 28px); border: 1px dashed var(--gold);
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 18px; }
-  .card-set .slot .label { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
-  .card-set .slot .desc { font-family: var(--serif); font-size: 19px; line-height: 1.35; color: var(--burgundy); }
-  .card-set .slot img { position: static; width: 54px; height: auto; padding: 0; opacity: .8; }
+  /* Pack-of-four photographs: a slow cross-fade. They are 4:5 in a 2:3 tile, so each is
+     positioned to keep all four packs in frame. */
+  .card-set .card-media img { object-fit: cover; padding: 0; opacity: 0; transform: none; transition: opacity 1.4s ease; }
+  .card-set .card-media img.is-on { opacity: 1; }
+  .card-set .card-media img:nth-of-type(1) { object-position: 62% 50%; }
+  .card-set .card-media img:nth-of-type(2) { object-position: 50% 50%; }
+  .card-set .card-media img:nth-of-type(3) { object-position: 62% 50%; }
+  .card-set:hover .card-media img, .card-set:focus-within .card-media img { transform: none; }
+  .set-dots { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; gap: 7px; z-index: 2; }
+  .set-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(251,245,234,.55); box-shadow: 0 0 0 1px rgba(60,35,20,.25); transition: background-color .6s ease, transform .6s ease; }
+  .set-dots i.is-on { background: #fbf5ea; transform: scale(1.25); }
 
   .shop-foot { max-width: 1240px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 64px) clamp(70px, 12vh, 130px); text-align: center; }
   .shop-foot h3 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(26px, 3.4vw, 44px); line-height: 1.2; color: var(--burgundy); }
@@ -161,12 +166,11 @@
     </article>
 
     <article class="card card-set" data-reveal="0.24">
-      <div class="card-media">
-        <div class="slot">
-          <img src="assets/brand/emblem.webp" alt="" width="790" height="749">
-          <span class="desc">All four fragrances,<br>in one box</span>
-          <span class="label">Photograph to be added</span>
-        </div>
+      <div class="card-media" id="setMedia">
+        <img class="is-on" src="assets/products/set/pack-of-four-1.webp" alt="All four MASAÉ packs laid out together with a burning incense stick, rose petals, jasmine, sandalwood and amber" loading="lazy">
+        <img src="assets/products/set/pack-of-four-2.webp" alt="The four MASAÉ packs standing on a stone ledge in a palace courtyard" loading="lazy">
+        <img src="assets/products/set/pack-of-four-3.webp" alt="Three MASAÉ packs standing on stone steps with the Tuberose pack resting in front" loading="lazy">
+        <span class="set-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></span>
       </div>
       <div class="card-body">
         <h2>Discovery Set</h2>
@@ -263,6 +267,24 @@
 (function () {
   MASAE.reveals();
   MASAE.footerBorder();
+
+  /* Pack-of-four photographs: slow cross-fade; stands still for reduced motion,
+     and pauses while the card is hovered or focused */
+  var media = document.getElementById('setMedia');
+  if (media && !MASAE.reduceMotion) {
+    var imgs = media.querySelectorAll('img'), dots = media.querySelectorAll('.set-dots i'), i = 0, paused = false;
+    var card = media.closest('.card');
+    card.addEventListener('mouseenter', function () { paused = true; });
+    card.addEventListener('mouseleave', function () { paused = false; });
+    card.addEventListener('focusin', function () { paused = true; });
+    card.addEventListener('focusout', function () { paused = false; });
+    setInterval(function () {
+      if (paused || document.hidden) return;
+      imgs[i].classList.remove('is-on'); dots[i].classList.remove('is-on');
+      i = (i + 1) % imgs.length;
+      imgs[i].classList.add('is-on'); dots[i].classList.add('is-on');
+    }, 4800);
+  }
 })();
 </script>
 </body>
