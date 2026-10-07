@@ -175,3 +175,102 @@ window.MASAE = (function () {
   return { reduceMotion: reduceMotion, isTouch: isTouch, lenis: lenis, petals: petals,
            reveals: reveals, footerBorder: footerBorder, updateHeader: updateHeader };
 })();
+
+/* ---------------------------------------------------------------------------
+   Background music with a mute button, on every page.
+   - Browsers block sound until the visitor interacts, so the music starts on the
+     first click, tap or key press, and fades in gently.
+   - The button mutes / unmutes; the choice is remembered on later pages.
+   - The track resumes roughly where it left off when moving between pages.
+   - It pauses while the tab is hidden, and never autoplays loudly.
+--------------------------------------------------------------------------- */
+(function () {
+  var SCRIPT = document.currentScript && document.currentScript.src;
+  if (!SCRIPT) return;
+  var SRC = new URL('../audio/masae-ambient.mp3', SCRIPT).href;
+  var TARGET = 0.32;                    // a quiet background level
+  var KEY_PREF = 'masae-sound', KEY_TIME = 'masae-sound-time';
+
+  function read(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function write(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  function sread(k) { try { return window.sessionStorage.getItem(k); } catch (e) { return null; } }
+  function swrite(k, v) { try { window.sessionStorage.setItem(k, v); } catch (e) {} }
+
+  var wantSound = read(KEY_PREF) !== 'off';   // sound is on unless the visitor muted it
+  var audio = new Audio();
+  audio.src = SRC; audio.loop = true; audio.preload = 'none'; audio.volume = 0;
+  var fadeTimer = null, started = false;
+
+  /* ---------- the button ---------- */
+  var btn = document.createElement('button');
+  btn.type = 'button'; btn.className = 'sound-btn';
+  btn.innerHTML =
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+      '<path d="M4 9.5v5h3.6L12.5 19V5L7.6 9.5H4z"/>' +
+      '<path class="waves" d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.6a7.6 7.6 0 0 1 0 10.8"/>' +
+      '<path class="slash" d="M17 8.5l4.5 7M21.5 8.5l-4.5 7"/>' +
+    '</svg><span class="sound-tip" aria-hidden="true"></span>';
+  document.body.appendChild(btn);
+
+  function paint() {
+    var on = wantSound && started && !audio.paused;
+    btn.classList.toggle('is-muted', !on);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var label = on ? 'Mute background music' : (wantSound ? 'Play background music' : 'Unmute background music');
+    btn.setAttribute('aria-label', label);
+    btn.querySelector('.sound-tip').textContent = on ? 'Sound on' : (wantSound ? 'Tap to play' : 'Sound off');
+  }
+
+  /* ---------- fading (timers, not rAF, so it also works in background tabs) ---------- */
+  function fadeTo(v, ms, done) {
+    clearInterval(fadeTimer);
+    var from = audio.volume, steps = Math.max(1, Math.round(ms / 40)), i = 0;
+    fadeTimer = setInterval(function () {
+      i++; audio.volume = Math.max(0, Math.min(1, from + (v - from) * (i / steps)));
+      if (i >= steps) { clearInterval(fadeTimer); if (done) done(); }
+    }, 40);
+  }
+  function start() {
+    if (!wantSound || document.hidden) return Promise.resolve(false);
+    audio.preload = 'auto';
+    var saved = parseFloat(sread(KEY_TIME));
+    if (!started && saved > 0) {
+      var seek = function () { try { audio.currentTime = saved % (audio.duration || 1e9); } catch (e) {} };
+      if (audio.readyState >= 1) seek(); else audio.addEventListener('loadedmetadata', seek, { once: true });
+    }
+    var p = audio.play();
+    return (p && p.then ? p : Promise.resolve()).then(function () {
+      started = true; fadeTo(TARGET, 1800); paint(); return true;
+    }).catch(function () { paint(); return false; });   // blocked until the visitor interacts
+  }
+  function stop() { fadeTo(0, 500, function () { audio.pause(); paint(); }); }
+
+  /* ---------- the visitor's controls ---------- */
+  btn.addEventListener('click', function () {
+    if (wantSound && started && !audio.paused) { wantSound = false; write(KEY_PREF, 'off'); stop(); }
+    else { wantSound = true; write(KEY_PREF, 'on'); start(); }
+    paint();
+  });
+
+  // the first real interaction anywhere on the page starts the music (unless it is on the button itself)
+  function firstGesture(e) {
+    if (e.target && e.target.closest && e.target.closest('.sound-btn')) return;
+    if (!started) start();
+    if (started || !wantSound) removeGestureListeners();
+  }
+  var EVENTS = ['pointerdown', 'keydown', 'touchend'];
+  function removeGestureListeners() { EVENTS.forEach(function (t) { document.removeEventListener(t, firstGesture, true); }); }
+  EVENTS.forEach(function (t) { document.addEventListener(t, firstGesture, true); });
+
+  // keep the position for the next page; stay quiet while the tab is hidden
+  function remember() { if (started) swrite(KEY_TIME, String(audio.currentTime || 0)); }
+  setInterval(remember, 2000);
+  window.addEventListener('pagehide', remember);
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { remember(); if (started && !audio.paused) { audio.pause(); } }
+    else if (wantSound && started) { start(); }
+  });
+
+  paint();
+  start();   // works straight away if the browser already allows audio for this site
+})();
