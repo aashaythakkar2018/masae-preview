@@ -187,7 +187,7 @@ window.MASAE = (function () {
 (function () {
   var SCRIPT = document.currentScript && document.currentScript.src;
   if (!SCRIPT) return;
-  var SRC = new URL('../audio/masae-ambient.mp3', SCRIPT).href;
+  var SRC = new URL('../audio/masae-music.mp3', SCRIPT).href;
   var TARGET = 0.32;                    // a quiet background level
   var KEY_PREF = 'masae-sound', KEY_TIME = 'masae-sound-time';
 
