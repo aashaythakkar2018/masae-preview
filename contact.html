@@ -103,11 +103,9 @@
     #formNote { margin-top: 8px; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .letter-stage { height: auto; }
-    .letter-sticky { position: relative; height: auto; }
-    .hero-cue::after { animation: none; }
-  }
+  .calm-scroll .letter-stage { height: auto; }
+  .calm-scroll .letter-sticky { position: relative; height: auto; }
+  @media (prefers-reduced-motion: reduce) { .hero-cue::after { animation: none; } }
 </style>
 </head>
 <body>
@@ -285,7 +283,7 @@
 
   /* ---------- The letter descends, then the fields arrive ---------- */
   var letter = document.getElementById('letter');
-  if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
+  if (window.gsap && window.ScrollTrigger && MASAE.scrollMotion) {
     var rows = letter.querySelectorAll('.crest, h2, .lede, .field, .letter-actions');
     var COMPACT = window.matchMedia('(max-width: 700px), (max-height: 720px)');
     gsap.set(rows, { autoAlpha: 0, y: 18 });

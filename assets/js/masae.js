@@ -3,6 +3,14 @@
    Load after GSAP/ScrollTrigger/Lenis and before any page script. */
 window.MASAE = (function () {
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* The scroll scenes (the journey through the arch, the incense lighting, the letter, the reveals) are
+     driven by the visitor's own scroll and are the heart of the site, so they keep running on phones that
+     have "Reduce Motion" / "Remove animations" switched on (which is common and used to hide them all).
+     Only the self-moving extras (drifting petals, haze, sway, auto-cycling photos, inertia scrolling) stand
+     down for those visitors. Set this to true to switch the scroll scenes off for them as well. */
+  var HONOUR_REDUCED_MOTION_FOR_SCROLL = false;
+  var scrollMotion = !(reduceMotion && HONOUR_REDUCED_MOTION_FOR_SCROLL);
+  if (!scrollMotion) document.documentElement.classList.add('calm-scroll');
   var isTouch = window.matchMedia('(pointer: coarse)').matches;
 
   // Register once, before anything touches ScrollTrigger (GSAP requirement)
@@ -137,7 +145,7 @@ window.MASAE = (function () {
   function reveals() {
     var els = document.querySelectorAll('[data-reveal]');
     if (!els.length) return;
-    if (reduceMotion || !window.gsap || !window.ScrollTrigger) {
+    if (!scrollMotion || !window.gsap || !window.ScrollTrigger) {
       gsap.set && gsap.set(els, { clearProps: 'all' });
       els.forEach(function (el) { el.style.opacity = 1; el.style.transform = 'none'; });
       return;
@@ -155,7 +163,7 @@ window.MASAE = (function () {
   /* ---------- The footer's botanical border draws itself in ---------- */
   function footerBorder() {
     var paths = document.querySelectorAll('.footer-border .draw');
-    if (!paths.length || reduceMotion || !window.gsap || !window.ScrollTrigger) return;
+    if (!paths.length || !scrollMotion || !window.gsap || !window.ScrollTrigger) return;
     paths.forEach(function (path) {
       var len = path.getTotalLength();
       gsap.fromTo(path, { strokeDasharray: len, strokeDashoffset: len },
@@ -177,7 +185,7 @@ window.MASAE = (function () {
   }
   refreshWhenSettled();
 
-  return { reduceMotion: reduceMotion, isTouch: isTouch, lenis: lenis, petals: petals,
+  return { reduceMotion: reduceMotion, scrollMotion: scrollMotion, isTouch: isTouch, lenis: lenis, petals: petals,
            reveals: reveals, footerBorder: footerBorder, updateHeader: updateHeader };
 })();
 

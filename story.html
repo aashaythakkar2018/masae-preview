@@ -480,7 +480,7 @@
   MASAE.petals(document.getElementById('bodyPetals'), { alpha: 0.42, count: 12, scrollDrift: 0.12 });
   MASAE.reveals();
 
-  if (!MASAE.reduceMotion && window.Motion) {
+  if (MASAE.scrollMotion && window.Motion) {
     /* Motion (the plain-JavaScript build of Framer Motion). Its scroll() hands the effect to
        the browser's native scroll timeline where supported, so it runs off the main thread
        and keeps gliding even when the page is busy. Pinned scenes stay on GSAP. */
@@ -504,7 +504,7 @@
     sc(an(document.querySelector('.story-banner picture'), { y: ['0%', '9%'] }, EASE),
        { target: document.querySelector('.story-banner'), offset: ['start start', 'end start'] });
 
-  } else if (window.gsap && window.ScrollTrigger && !MASAE.reduceMotion) {
+  } else if (window.gsap && window.ScrollTrigger && MASAE.scrollMotion) {
     // fallback if the Motion script could not load: the same effects on GSAP
     document.querySelectorAll('[data-parallax]').forEach(function (box) {
       var img = box.querySelector('img'), amount = parseFloat(box.dataset.parallax) || 8;
