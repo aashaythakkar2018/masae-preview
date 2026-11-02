@@ -177,6 +177,22 @@
   .ritual-media, .ritual-media canvas, .ritual-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 60% 50%; }
   .ritual-media canvas { opacity: 0; transition: opacity .4s ease; }
   .ritual-media canvas.is-ready { opacity: 1; }
+  .ritual-backdrop { display: none; }
+  /* Portrait screens: the scene is a landscape picture, so cropping it to fill a tall screen cut off most of
+     it and enlarged it until it blurred. Instead it sits as its own picture, framed so the bowl, the dish, the
+     stick and the smoke all stay in view, on a soft, blurred extension of the same scene. */
+  @media (max-aspect-ratio: 4/5) {
+    .ritual-backdrop { display: block; position: absolute; inset: -8%; width: 116%; height: 116%; object-fit: cover;
+      filter: blur(26px) brightness(.5) saturate(1.1); }
+    .ritual-media { inset: auto; left: 0; right: 0; width: 100%; height: auto; aspect-ratio: 840 / 766;
+      top: max(64px, calc((100svh - 100vw * 0.912 - 190px) / 2 + 40px));
+      -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 85%, transparent 100%);
+      mask-image: linear-gradient(180deg, transparent 0, #000 13%, #000 85%, transparent 100%); }
+  }
+  /* tablets held upright show the whole wide picture, edge to edge */
+  @media (max-aspect-ratio: 4/5) and (min-width: 700px) {
+    .ritual-media { aspect-ratio: 1280 / 724; top: max(64px, calc((100svh - 100vw * 0.566 - 190px) / 2 + 40px)); }
+  }
   .ritual-shade { position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(0deg, rgba(30,18,12,.86) 0%, rgba(30,18,12,.5) 18%, rgba(30,18,12,0) 38%); }
   .ritual-steps { position: absolute; left: 0; right: 0; bottom: clamp(58px, 9vh, 84px); height: 120px; }
@@ -312,11 +328,15 @@
   </section>
   <section class="ritual" id="ritual" aria-label="How to burn MASAÉ incense">
     <div class="ritual-sticky">
+      <img class="ritual-backdrop" src="assets/ritual/lighting/sm/frame-01.jpg" alt="" aria-hidden="true">
       <div class="ritual-media">
         <!-- The lighting is a frame sequence drawn on canvas, so it follows the scroll exactly -->
-        <img id="ritualPoster" src="assets/ritual/lighting/sm/frame-01.jpg"
-             srcset="assets/ritual/lighting/sm/frame-01.jpg 720w, assets/ritual/lighting/frame-01.jpg 1280w"
-             sizes="100vw" alt="A single incense stick being lit in a palace corner at dusk">
+        <picture>
+          <source media="(max-aspect-ratio: 4/5) and (max-width: 699px)" srcset="assets/ritual/lighting/portrait/frame-01.jpg">
+          <img id="ritualPoster" src="assets/ritual/lighting/sm/frame-01.jpg"
+               srcset="assets/ritual/lighting/sm/frame-01.jpg 720w, assets/ritual/lighting/frame-01.jpg 1280w"
+               sizes="100vw" alt="A single incense stick being lit in a palace corner at dusk">
+        </picture>
         <canvas id="ritualCanvas" aria-hidden="true"></canvas>
       </div>
       <div class="ritual-shade"></div>
@@ -637,11 +657,19 @@
   var canvas = document.getElementById('ritualCanvas'), poster = document.getElementById('ritualPoster');
   var ctx = canvas.getContext('2d');
   var FRAMES = 48, frames = [], loaded = 0, drawn = -1, sized = false, lastP = 0;
-  // phones and tablets load the 720px set (1.9 MB) instead of the 1280px set (4.7 MB)
-  var FRAME_DIR = (window.innerWidth < 900 || isTouch) ? 'assets/ritual/lighting/sm/' : 'assets/ritual/lighting/';
+  /* Which frames to load: an upright phone gets the portrait crop (the part of the scene that matters, at full
+     sharpness); a small landscape screen gets the 720px set; everything else the 1280px set. */
+  var UPRIGHT = window.matchMedia('(max-aspect-ratio: 4/5)');
+  function frameDir() {
+    var w = window.innerWidth;
+    if (UPRIGHT.matches && w < 700) return 'assets/ritual/lighting/portrait/';
+    if (w < 700) return 'assets/ritual/lighting/sm/';
+    return 'assets/ritual/lighting/';
+  }
+  var FRAME_DIR = frameDir();
 
   function sizeRitualCanvas() {
-    var dpr = Math.min(window.devicePixelRatio || 1, isTouch ? 1.5 : 2);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);   // the picture is small on a phone, so full sharpness is cheap
     var w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (!w || !h || (canvas.width === w && canvas.height === h)) return;
     canvas.width = w; canvas.height = h; sized = true; drawn = -1;
@@ -671,7 +699,14 @@
       frames.push(img);
     }
   }
-  function redrawRitual() { sized = false; sizeRitualCanvas(); drawn = -1; setRitual(lastP); }
+  function redrawRitual() {
+    // turned the phone? then the picture set may need to change too
+    var dir = frameDir();
+    if (dir !== FRAME_DIR && frames.length) {
+      FRAME_DIR = dir; frames = []; loaded = 0; canvas.classList.remove('is-ready'); loadFrames();
+    }
+    sized = false; sizeRitualCanvas(); drawn = -1; setRitual(lastP);
+  }
   window.addEventListener('resize', redrawRitual);
   if (window.ResizeObserver) new ResizeObserver(redrawRitual).observe(canvas);
 
