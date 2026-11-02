@@ -220,7 +220,7 @@
       <h4>Care</h4>
       <ul>
         <li><a href="#">Shipping &amp; Delivery</a></li>
-        <li><a href="#">Returns</a></li>
+        <li><a href="refund-policy.html">Returns</a></li>
         <li><a href="#">Track Your Order</a></li>
         <li><a href="#">FAQ</a></li>
         <li><a href="contact.html">Contact</a></li>
@@ -245,9 +245,9 @@
   <div class="footer-bottom">
     <span>© 2026 MASAÉ · Awwadh International. All rights reserved.</span>
     <nav aria-label="Legal">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Refund Policy</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="refund-policy.html">Refund Policy</a>
     </nav>
   </div>
 </footer>
@@ -269,7 +269,7 @@
 
     gsap.timeline({
       defaults: { ease: 'none' },
-      scrollTrigger: { trigger: '#letterStage', start: 'top top', end: 'bottom bottom', scrub: MASAE.lenis ? 0.5 : 0.9 }
+      scrollTrigger: { trigger: '#letterStage', start: 'top top', end: 'bottom bottom', scrub: MASAE.lenis ? true : 0.4 }
     })
       .to(letter, { yPercent: 0, opacity: 1, duration: 0.42, ease: 'power2.out' }, 0)
       .to(rows,   { autoAlpha: 1, y: 0, duration: 0.30, stagger: 0.05, ease: 'power2.out' }, 0.38);

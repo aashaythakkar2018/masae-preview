@@ -436,7 +436,7 @@
       <h4>Care</h4>
       <ul>
         <li><a href="#">Shipping &amp; Delivery</a></li>
-        <li><a href="#">Returns</a></li>
+        <li><a href="refund-policy.html">Returns</a></li>
         <li><a href="#">Track Your Order</a></li>
         <li><a href="#">FAQ</a></li>
         <li><a href="contact.html">Contact</a></li>
@@ -461,9 +461,9 @@
   <div class="footer-bottom">
     <span>© 2026 MASAÉ · Awwadh International. All rights reserved.</span>
     <nav aria-label="Legal">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Refund Policy</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="refund-policy.html">Refund Policy</a>
     </nav>
   </div>
 </footer>
@@ -509,19 +509,19 @@
     document.querySelectorAll('[data-parallax]').forEach(function (box) {
       var img = box.querySelector('img'), amount = parseFloat(box.dataset.parallax) || 8;
       gsap.fromTo(img, { yPercent: -amount }, { yPercent: amount, ease: 'none',
-        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.5 : 0.9 } });
+        scrollTrigger: { trigger: box, start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? true : 0.4 } });
     });
     document.querySelectorAll('.story-decor .motif').forEach(function (motif) {
       var drift = parseFloat(motif.dataset.drift) || 8;
       gsap.fromTo(motif, { yPercent: -drift * 3 }, { yPercent: drift * 3, ease: 'none',
-        scrollTrigger: { trigger: '.story-body', start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? 0.6 : 1 } });
+        scrollTrigger: { trigger: '.story-body', start: 'top bottom', end: 'bottom top', scrub: MASAE.lenis ? true : 0.5 } });
     });
     document.querySelectorAll('.rule').forEach(function (rule) {
       gsap.fromTo(rule, { scaleY: 0 }, { scaleY: 1, ease: 'none',
-        scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: 0.6 } });
+        scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: MASAE.lenis ? true : 0.4 } });
     });
     gsap.to('.story-banner picture', { yPercent: 9, ease: 'none',
-      scrollTrigger: { trigger: '.story-banner', start: 'top top', end: 'bottom top', scrub: 0.6 } });
+      scrollTrigger: { trigger: '.story-banner', start: 'top top', end: 'bottom top', scrub: MASAE.lenis ? true : 0.4 } });
   }
 
   MASAE.footerBorder();

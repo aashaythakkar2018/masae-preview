@@ -364,7 +364,7 @@
       <h4>Care</h4>
       <ul>
         <li><a href="#">Shipping &amp; Delivery</a></li>
-        <li><a href="#">Returns</a></li>
+        <li><a href="refund-policy.html">Returns</a></li>
         <li><a href="#">Track Your Order</a></li>
         <li><a href="#">FAQ</a></li>
         <li><a href="contact.html">Contact</a></li>
@@ -391,9 +391,9 @@
   <div class="footer-bottom">
     <span>© 2026 MASAÉ · Awwadh International. All rights reserved.</span>
     <nav aria-label="Legal">
-      <a href="#">Privacy Policy</a>
-      <a href="#">Terms of Service</a>
-      <a href="#">Refund Policy</a>
+      <a href="privacy.html">Privacy Policy</a>
+      <a href="terms.html">Terms of Service</a>
+      <a href="refund-policy.html">Refund Policy</a>
     </nav>
   </div>
 </footer>
@@ -482,7 +482,7 @@
     if (bgCanvas.width !== bw) bgCanvas.width = bw;
     if (bgCanvas.height !== bh) bgCanvas.height = bh;
     bgCtx.setTransform(bw / cw, 0, 0, bh / ch, 0, 0);
-    bgCtx.imageSmoothingQuality = 'high';
+    bgCtx.imageSmoothingQuality = 'medium';   // 'high' re-samples a 2.5k photo on every scroll frame: costly and not visible while moving
   }
   function ready(img) { return img.complete && img.naturalWidth > 0; }
   function drawZoomed(img, S) {
@@ -615,10 +615,10 @@
     });
     ctx.globalAlpha = 1;
   }
-  function loop() { if (heroVisible) { drawPetals(); drawHaze(); } requestAnimationFrame(loop); }
+  function ambient() { if (heroVisible) { drawPetals(); drawHaze(); } }
   if (!reduceMotion) {
     new IntersectionObserver(function (e) { heroVisible = e[0].isIntersecting; }).observe(hero);
-    requestAnimationFrame(loop);
+    // drawn from GSAP's ticker (added with renderScene below), so one frame never runs two separate loops
   }
 
   /* ---------- The Art of Incense: the stick lights as you scroll ----------
@@ -656,6 +656,7 @@
       img.decoding = 'async';
       // attach the handler before src, or a cached frame fires load before anyone is listening
       img.onload = function () {
+        if (this.decode) this.decode().catch(function () {});   // decode now, not on the frame that first shows it
         loaded++;
         if (loaded === 1) { sizeRitualCanvas(); setRitual(lastP); canvas.classList.add('is-ready'); }
       };
@@ -706,6 +707,20 @@
   // redraw when a photo arrives (the <picture> may also swap between wide and tall on rotate)
   bgImg.addEventListener('load', apply); innerImg.addEventListener('load', apply);
   apply();
+  /* The first time a large photo is drawn the browser decodes it and uploads it to the GPU, which
+     showed up as a half-second freeze when the courtyard first appeared. Do that work now, while the
+     page is idle: decode every hero photo, then paint the courtyard once at 1% so its texture is ready. */
+  var heroPhotos = [bgImg, innerImg, inner.querySelector('.inner-surround img'), document.querySelector('#fg img')];
+  function warmPhoto(img) {
+    if (!img) return Promise.resolve();
+    return (img.decode ? img.decode() : Promise.resolve()).catch(function () {});
+  }
+  Promise.all(heroPhotos.map(warmPhoto)).then(function () {
+    if (!ready(innerImg)) return;
+    drawScene();
+    bgCtx.save(); bgCtx.globalAlpha = 0.01; drawZoomed(innerImg, 1); bgCtx.restore();
+    requestAnimationFrame(function () { lastKey = ''; apply(); });
+  });
   // ScrollTrigger is registered and configured in assets/js/masae.js
   var lenis = MASAE.lenis;   // shared smooth wheel scrolling (assets/js/masae.js)
   /* The hero is built directly rather than through gsap.matchMedia(), which defers its
@@ -755,7 +770,8 @@
       animation: tl, trigger: hero, start: 'top top', end: desktop ? '+=320%' : '+=260%',
       // refreshPriority 1: the pinned hero must refresh FIRST so the sections below it
       // measure the page with its pin spacing (higher number = refreshed earlier)
-      scrub: lenis ? 0.3 : 0.6, pin: true, anticipatePin: 1, refreshPriority: 1,
+      // with Lenis the scroll is already eased; extra scrub lag would only delay the scene
+      scrub: lenis ? true : 0.3, pin: true, anticipatePin: 1, refreshPriority: 1,
       onUpdate: function (self) { pinProgress = self.progress; updateHeader(); reveal.classList.toggle('is-live', self.progress > 0.8); }
     });
   }
@@ -782,14 +798,14 @@
   document.querySelectorAll('.rule').forEach(function (rule) {
     gsap.fromTo(rule, { scaleY: 0 }, {
       scaleY: 1, ease: 'none',
-      scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: 0.6 }
+      scrollTrigger: { trigger: rule, start: 'top 92%', end: 'bottom 60%', scrub: lenis ? true : 0.4 }
     });
   });
 
   // rebuild when the screen turns between landscape and portrait
   if (PORTRAIT.addEventListener) PORTRAIT.addEventListener('change', rebuildHero);
 
-  gsap.ticker.add(renderScene);
+  gsap.ticker.add(function () { renderScene(); ambient(); });
   ScrollTrigger.addEventListener('refreshInit', function () { lastKey = ''; layout(); });
 })();
 </script>
