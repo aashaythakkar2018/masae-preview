@@ -146,6 +146,17 @@
     transition: background-color .5s ease, color .5s ease;
   }
   .cta:hover { background: var(--burgundy); color: var(--ivory); }
+  /* Short screens (a phone held sideways): the title, packs, names and button all have to share ~375px,
+     so the kicker goes, the type and spacing shrink, and the button moves down to the bottom edge */
+  @media (max-height: 520px) {
+    .reveal-title { top: 54px; }
+    .reveal-title .kicker { display: none; }
+    .reveal-title h2 { margin-top: 0; font-size: clamp(20px, 3vw, 26px); }
+    .labels { top: calc(var(--ledge-y, 66vh) + 10px); }
+    .labels span { padding: 4px 2px 5px; font-size: 11px; }
+    .labels small { display: none; }
+    .cta { bottom: calc(8px + 100lvh - 100svh); padding: 8px 20px; font-size: 10px; letter-spacing: .24em; }
+  }
 
   /* ---------- Following section ---------- */
   .statement { position: relative; padding: clamp(96px, 16vh, 180px) clamp(16px, 6vw, 80px); text-align: center; }
