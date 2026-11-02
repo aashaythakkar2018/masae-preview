@@ -417,7 +417,7 @@
   ];
   function renderPacks(packsEl, labelsEl) {
     packsEl.innerHTML = PRODUCTS.map(function (p) {
-      return '<a class="pack" href="#"><span class="pack-inner"><img src="assets/products/' + p.img + '" alt="' + p.alt + '"></span></a>';
+      return '<a class="pack" href="shop.html"><span class="pack-inner"><img src="assets/products/' + p.img + '" alt="' + p.alt + '"></span></a>';
     }).join('');
     labelsEl.innerHTML = PRODUCTS.map(function (p) {
       return '<span>' + p.name + '<small>' + p.notes + '</small></span>';

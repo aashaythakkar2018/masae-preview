@@ -61,15 +61,20 @@ window.MASAE = (function () {
     });
   }
 
-  /* ---------- Footer newsletter (prototype: validates, does not send) ---------- */
+  /* ---------- Footer newsletter: opens a pre-filled sign-up email to info@masae.in ---------- */
   var newsForm = document.getElementById('newsForm');
   if (newsForm) {
     newsForm.addEventListener('submit', function (e) {
       e.preventDefault();
       var v = document.getElementById('newsEmail').value.trim();
-      document.getElementById('newsNote').textContent = /.+@.+\..+/.test(v)
-        ? 'Thank you. (Prototype: sign-up is not connected yet.)'
-        : 'Please enter a valid email address.';
+      var note = document.getElementById('newsNote');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+        note.textContent = 'Please enter a valid email address.';
+        return;
+      }
+      note.textContent = 'Opening your email app to confirm your sign-up.';
+      window.location.href = 'mailto:info@masae.in?subject=' + encodeURIComponent('MASAÉ Letter sign-up') +
+        '&body=' + encodeURIComponent('Please add me to the MASAÉ Letter.\n\nEmail: ' + v);
     });
   }
 
