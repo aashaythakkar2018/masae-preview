@@ -55,6 +55,11 @@
     min-height: 62px; border-top: 1px solid rgba(165,138,85,.35); }   /* one height for every price row, so the rules line up */
   .card .spec > * { padding-top: 14px; }
   .card .price { font-family: var(--serif); font-size: 24px; color: var(--ink); }
+  .card .price .was { margin-right: 10px; font-size: 17px; color: var(--muted); text-decoration: line-through; text-decoration-color: var(--burgundy); text-decoration-thickness: 1px; }
+  .card .price .now { color: var(--burgundy); }
+  .card .save { padding: 3px 10px; border: 1px solid rgba(125,36,30,.45); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--burgundy); align-self: center; }
+  .card .buy-note { flex-basis: 100%; font-size: 12px; line-height: 1.6; color: var(--muted); }
+  .card .buy-note a { color: var(--burgundy); }
   .card .pack { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
   .card .actions { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
   .card .soon { font-size: 12px; color: var(--muted); }
@@ -183,9 +188,9 @@
         <h2>Discovery Set</h2>
         <p class="notes">Oud &amp; Amber · Tuberose · Blanc Santal · Velvet Rose</p>
         <p class="story">The whole garden in one box: every fragrance in the collection, made for gifting and for finding your own.</p>
-        <div class="spec"><span class="price">Price<span class="tba">To be added</span></span><span class="pack">4 fragrances</span></div>
+        <div class="spec"><span class="price"><s class="was" aria-label="Original price ₹3,596">₹3,596</s><span class="now" aria-label="Offer price ₹3,199">₹3,199</span></span><span class="pack">4 fragrances</span><span class="save">Save ₹397</span></div>
         <div class="actions">
-          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20ask%20about%20the%20MASA%C3%89%20Discovery%20Set." target="_blank" rel="noopener">Ask on WhatsApp</a>
+          <a class="btn" href="https://wa.me/919170663334?text=I%20would%20like%20to%20order%20the%20MASA%C3%89%20Discovery%20Set%20(%E2%82%B93%2C199)." target="_blank" rel="noopener">Order on WhatsApp</a>
         </div>
       </div>
     </article>
@@ -273,6 +278,31 @@
 (function () {
   MASAE.reveals();
   MASAE.footerBorder();
+
+  /* ---------- Razorpay "Buy now" ----------
+     Paste each product's Razorpay Payment Page / Payment Button link between the quotes. A product with a link
+     gets a "Buy now" button (and WhatsApp becomes "Ask on WhatsApp"); a product without one keeps "Order on
+     WhatsApp", so nothing on the page is ever broken. */
+  var RAZORPAY = {
+    'Oud & Amber':   '',
+    'Tuberose':      '',
+    'Blanc Santal':  '',
+    'Velvet Rose':   '',
+    'Discovery Set': ''
+  };
+  document.querySelectorAll('.card').forEach(function (card) {
+    var name = card.querySelector('h2').textContent.trim(), link = RAZORPAY[name];
+    if (!link) return;
+    var actions = card.querySelector('.actions'), wa = actions.querySelector('a');
+    var buy = document.createElement('a');
+    buy.className = 'btn btn-solid'; buy.href = link; buy.target = '_blank'; buy.rel = 'noopener'; buy.textContent = 'Buy now';
+    actions.insertBefore(buy, wa);
+    wa.textContent = 'Ask on WhatsApp';
+    var note = document.createElement('p');
+    note.className = 'buy-note';
+    note.innerHTML = 'Secure payment by Razorpay. All sales are final: see our <a href="refund-policy.html">Refund Policy</a> and <a href="terms.html">Terms</a>.';
+    actions.appendChild(note);
+  });
 
   /* Pack-of-four photographs: slow cross-fade; stands still for reduced motion,
      and pauses while the card is hovered or focused */
